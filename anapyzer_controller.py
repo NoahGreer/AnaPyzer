@@ -1,77 +1,57 @@
-# Import the AnaPyzerModel class
-import anapyzer_model
-# Import the AnaPyzerView class
-import anapyzer_view
-
-# Import the tkinter UI library
-import tkinter
-# Import the tkinter themed UI library
-import tkinter.ttk
-# Import the filedialog subclass to allow the user to graphically select a log file
-import tkinter.filedialog
-
-# Import the pathlib library for cross platform file path abstraction
-import pathlib
-
+# Class definition for the Controller part of the MVC design pattern
 class AnaPyzerController():
     # Constructor
-    def __init__(self):
-        # Instantiate the tkinter application root object to attach the view to
-        self.root = tkinter.Tk()
-        # Instantiate the AnaPyzerModel object
-        self.model = anapyzer_model.AnaPyzerModel(self)
+    # Takes a view and a model object
+    def __init__(self, view, model):
+        # Set the controller's reference to the application view object
+        self.view = view
+        # Set the controller's reference to the application model object
+        self.model = model
 
-        # Set in_file_path to a tkinter.StringVar() so that
-        # the UI can watch for a change to the value
-        self.log_type_option = tkinter.StringVar()
-        self.log_type_option.set(self.model.ACCEPTED_LOG_TYPES[0])
-        self.in_file_path = tkinter.StringVar()
-        self.in_file_path.set(pathlib.Path.cwd())
+        # Register listeners
+        self.view.add_browse_button_listener(self.browse_file_button_handler)
+        self.view.add_open_file_button_listener(self.open_file_button_handler)
+        self.view.add_log_type_option_menu_listener(self.log_type_option_menu_handler)
+        self.view.add_file_read_option_menu_listener(self.file_read_option_menu_handler)
 
-        # Instantiate the AnaPyzerView object as child of the root
-        self.view = anapyzer_view.AnaPyzerView(self.root, self)
+        self.view.create_widgets()
 
-        # Bind to the self.in_file_path variable for changes
-        self.view.file_path_field.config(textvariable = self.in_file_path)
-
-        # Register button left mouse click callbacks
-        self.view.open_file_button.config(command = self.open_file_button_handler)
-        self.view.browse_file_button.config(command = self.browse_file_button_handler)
+        # Set the available options for the view's options menu
+        self.view.set_log_type_options(self.model.ACCEPTED_LOG_TYPES)
+        self.view.set_file_read_options(self.model.FILE_PARSE_MODES)
+        self.view.set_file_path(self.model.get_file_path())
 
     # Start the application
     def run(self):
-        self.root.mainloop()
+        self.view.mainloop()
 
+    # Handler for when the log type option menu has an item selected
+    def log_type_option_menu_handler(self, value):
+        self.model.set_log_type(value)
+
+    # Handler for when the log type option menu has an item selected
+    def file_read_option_menu_handler(self, value):
+        self.model.set_file_parse_mode(value)
 
     # Function for handling when the "Browse..." button is pressed
     def browse_file_button_handler(self):
         # Get a new file path by prompting the user with a file selection dialog
-        new_file_path = tkinter.filedialog.askopenfilename(parent = self.root, # Make it a child of the main window object
-                                                           initialdir = pathlib.Path.cwd(), # Start in the current working directory
-                                                           title = 'Select file', # Set the title of the open file window
-                                                           filetypes = self.model.ACCEPTED_FILE_FORMATS) # Only allow certain files to be selected
+        new_file_path = self.view.display_file_select_prompt(self.model.get_file_path(),
+                                                             self.model.ACCEPTED_FILE_FORMATS)
 
         # Update the input file path to the one received from the user via the file dialog
-        self.in_file_path.set(new_file_path)
+        self.model.set_file_path(new_file_path)
+        self.view.set_file_path(self.model.get_file_path())
 
     # Function for handling when the "Open" button is pressed
     def open_file_button_handler(self):
-        # Set the file path in the model
-        self.model.set_file_path(self.in_file_path.get())
         # Read the contents of the file
         file_contents = self.model.read_file()
 
-        self.view.file_output_text.delete(1.0, tkinter.END)
         if file_contents:
-            self.view.file_output_text.insert(tkinter.END, file_contents)
-
-    def fileReadError(self, message):
-        self.view.displayErrorMessage(message)
-
-# Entry point
-# If the application is being run directly, rather than from another script
-if __name__ == '__main__':
-    # Instantiate the main application controller object
-    anapyzer = AnaPyzerController()
-    # Run the main application
-    anapyzer.run()
+            self.view.set_file_output_text(file_contents)
+        else:
+            self.file_read_error('Could not open file ' + str(self.model.get_file_path()))
+            
+    def file_read_error(self, message):
+        self.view.display_error_message(message)
