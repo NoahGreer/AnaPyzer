@@ -3,12 +3,25 @@ import pathlib
 # Import the re library to support regular expressions
 import re
 
+class AnaPyzerModelException(Exception): pass
+
+class AnaPyzerFileException(AnaPyzerModelException):
+    def __init__(self, file=None, file_mode=None, *args, **kwargs):
+        self.file = file
+        self.file_mode = file_mode
+
+    def __repr__(self):
+        return u"FileException(file={0!r}, file_mode={1!r})".format(self.file, self.file_mode)
+
+    __str__ = __repr__
+
 # Class definition for the file reader of the application
 class AnaPyzerModel():
     # 'constant' for the accepted log file types
     ACCEPTED_LOG_TYPES = ['Apache (access.log)', 'IIS (u_ex*.log)']
     ACCEPTED_FILE_FORMATS = [('log files','*.log')]
     FILE_PARSE_MODES = ['Convert to csv', 'Generate graph', 'Count IPs']
+    OUTPUT_FILE_FORMATS = [('CSV (Comma delimited)','*.csv')]
 
     # Constructor
     def __init__(self):
@@ -34,6 +47,8 @@ class AnaPyzerModel():
     def set_log_type(self, log_type):
         self.log_type = log_type
 
+    # Getter for the model's file type of the expected input log type
+    # Returns a string representing the expected input log type
     def get_log_type(self):
         return self.log_type
 
@@ -46,7 +61,7 @@ class AnaPyzerModel():
     # Read the file
     def read_file(self):
         try:
-            self.in_file = open(self.in_file_path, 'r')
+            in_file = open(self.in_file_path, 'r')
         except:
             return None
 
@@ -55,7 +70,7 @@ class AnaPyzerModel():
         # Create the 'IP_address_counts' dictionary to count the IP addresses
         IP_address_counts = {}
 
-        for line in self.in_file:
+        for line in in_file:
             matchObj = re.match(regex_IP_pattern, line, flags = 0)
             if matchObj:
                 if IP_address_counts.get(matchObj.group()):
@@ -63,7 +78,7 @@ class AnaPyzerModel():
                 else:
                     IP_address_counts[matchObj.group()] = 1
 
-        self.in_file.close()
+        in_file.close()
 
         output_string = ''
 
@@ -71,3 +86,24 @@ class AnaPyzerModel():
             output_string += '{} : {}\n'.format(IP_address, count)
 
         return output_string
+
+    def read_file_to_csv(self, output_path):
+        try:
+            in_file = open(self.in_file_path, 'r')
+        except:
+            raise AnaPyzerFileException(file=self.in_file_path, file_mode='r')
+
+        try:
+            out_file = open(output_path, 'w')
+        except:
+            in_file.close()
+            raise AnaPyzerFileException(file=output_path, file_mode='w')
+
+        for line in in_file:
+            converted_line = re.sub("\s+", ",", line.strip())
+            out_file.write(converted_line + '\n')
+
+        in_file.close()
+        out_file.close()
+
+        return True
