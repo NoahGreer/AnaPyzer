@@ -1,9 +1,9 @@
 # Import the AnaPyzerModel class
-from anapyzer_model import *
+from anapyzermodel import *
 # Import the AnaPyzerView class
-from anapyzer_view import *
+from anapyzerview import *
 # Import the AnaPyzerController class
-from anapyzer_controller import *
+from anapyzercontroller import *
 
 # Entry point
 # If the application is being run directly, rather than from another script

@@ -1,7 +1,7 @@
 # Import the AnaPyzerModel class
-from anapyzer_model import *
+from anapyzermodel import *
 # Import the AnaPyzerView class
-from anapyzer_view import *
+from anapyzerview import *
 
 # Class definition for the Controller part of the MVC design pattern
 class AnaPyzerController():
