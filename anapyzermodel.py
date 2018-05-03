@@ -26,8 +26,9 @@ class AnaPyzerModel():
 
     # Constructor
     def __init__(self):
-        self._in_file_path = pathlib.Path.cwd()
-        self._out_file_path = pathlib.Path.cwd()
+        self.DEFAULT_FILE_PATH = pathlib.Path.home()
+        self._in_file_path = pathlib.Path('')
+        self._out_file_path = pathlib.Path('')
         self._log_type = AnaPyzerModel.ACCEPTED_LOG_TYPES[0]
         self._file_parse_mode = AnaPyzerModel.FILE_PARSE_MODES[0]
 
@@ -36,30 +37,59 @@ class AnaPyzerModel():
     def set_in_file_path(self, in_file_path):
         # If the input file path was set, set the model's file path equal to it
         if in_file_path:
-            self._in_file_path = in_file_path
+            self._in_file_path = pathlib.Path(in_file_path)
         # Otherwise set the model's file path equal to the current working directory
         else:
-            self._in_file_path = pathlib.Path.cwd()
+            self._in_file_path = pathlib.Path(self.DEFAULT_FILE_PATH)
 
     # Getter for the model's file path to the input file
     # Returns a string representing the file path
     def get_in_file_path(self):
-        return self._in_file_path
+        in_file_path = str(self._in_file_path)
+        if (in_file_path == '.'):
+            in_file_path = ''
+        return in_file_path
+
+    def in_file_path_is_valid(self):
+        return pathlib.Path(self._in_file_path).is_file()
 
     # Setter for the file path to the input file
     # Takes a string for the file path
     def set_out_file_path(self, out_file_path):
         # If the input file path was set, set the model's file path equal to it
         if out_file_path:
-            self._out_file_path = out_file_path
+            # If we are in convert to CSV mode
+            if self._file_parse_mode == AnaPyzerModel.FILE_PARSE_MODES[0]: # CSV
+                # Get the suffix of the output file
+                out_file_suffix = str(pathlib.PurePath(out_file_path).suffix)
+                # If it is not '.csv'
+                if out_file_suffix != '.csv':
+                    # Change the suffix to '.csv'
+                    out_file_path = str(pathlib.PurePath(out_file_path).with_suffix('.csv'))
+            # Set the model's out file path to the out file path
+            self._out_file_path = pathlib.Path(out_file_path)
         # Otherwise set the model's file path equal to the current working directory
         else:
-            self._out_file_path = pathlib.Path.cwd()
+            self._out_file_path = pathlib.Path(self.DEFAULT_FILE_PATH)
 
     # Getter for the model's file path to the input file
     # Returns a string representing the file path
     def get_out_file_path(self):
-        return self._out_file_path
+        out_file_path = str(self._out_file_path)
+        if (out_file_path == '.'):
+            out_file_path = ''
+        return out_file_path
+
+    def out_file_path_is_valid(self):
+        is_valid = False
+
+        out_file_path = pathlib.PurePath(self._out_file_path)
+        out_file_path_parent = pathlib.Path(str(out_file_path.parent))
+
+        if (self._out_file_path != '' and out_file_path_parent.is_dir()):
+            is_valid = True
+
+        return is_valid
 
     def set_log_type(self, log_type):
         self._log_type = log_type

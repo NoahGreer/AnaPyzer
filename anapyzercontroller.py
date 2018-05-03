@@ -23,8 +23,8 @@ class AnaPyzerController():
 
         # Register listeners in the view before creating the widgets because the
         # widgets do not allow changing the callback method after they have been created
-        self.view.add_browse_in_file_button_clicked_listener(self.browse_in_file_button_clicked)
-        self.view.add_browse_out_file_button_clicked_listener(self.browse_out_file_button_clicked)
+        self.view.add_in_file_browse_button_clicked_listener(self.in_file_browse_button_clicked)
+        self.view.add_out_file_browse_button_clicked_listener(self.out_file_browse_button_clicked)
         self.view.add_open_file_button_clicked_listener(self.open_file_button_clicked)
         self.view.add_log_type_option_changed_listener(self.log_type_option_changed)
         self.view.add_file_read_option_changed_listener(self.file_read_option_changed)
@@ -45,7 +45,7 @@ class AnaPyzerController():
         self.update_view()
 
     # Function for handling when the in file "Browse..." button is pressed
-    def browse_in_file_button_clicked(self):
+    def in_file_browse_button_clicked(self):
         # Get a new file path by prompting the user with a file selection dialog
         in_file_path = self.view.display_in_file_select_prompt(self.model.get_in_file_path(),
                                                                self.model.ACCEPTED_FILE_FORMATS)
@@ -55,7 +55,7 @@ class AnaPyzerController():
         self.update_view()
 
     # Function for handling when the out file "Browse..." button is pressed
-    def browse_out_file_button_clicked(self):
+    def out_file_browse_button_clicked(self):
         # Get a new file path by prompting the user with a file selection dialog
         out_file_path = self.view.display_out_file_select_prompt(self.model.get_out_file_path(),
                                                                  self.model.OUTPUT_FILE_FORMATS)
@@ -95,7 +95,7 @@ class AnaPyzerController():
         if (self.model.get_file_parse_mode() == AnaPyzerModel.FILE_PARSE_MODES[0]):
             self.view.show_out_file_path_widgets()
             self.view.disable_open_file_button()
-            if (pathlib.Path(self.model.get_in_file_path()).is_file() and pathlib.Path(self.model.get_out_file_path()).is_file()):
+            if (self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid()):
                 self.view.enable_open_file_button()
         else:
             self.view.hide_out_file_path_widgets()

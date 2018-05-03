@@ -33,17 +33,17 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._file_read_choice = tkinter.StringVar()
 
         # Tell the view to create the widgets and populate the window with them
-        self.create_widgets()
+        self._create_widgets()
 
         # Initialize the listener method variable values
+        self._log_type_option_changed = None
         self._in_file_browse_button_clicked = None
+        self._file_read_option_changed = None
         self._out_file_browse_button_clicked = None
         self._open_file_button_clicked = None
-        self._log_type_option_changed = None
-        self._file_read_option_changed = None
 
     # Function for creating all the tkinter UI widgets in the window
-    def create_widgets(self):
+    def _create_widgets(self):
         rowindex = 0
         colindex = 0
         # Create a Label object to describe the purpose of the log_type_spinbox Spinbox object to the user
@@ -74,19 +74,20 @@ class AnaPyzerView(tkinter.ttk.Frame):
         # Create an Entry object for the file path entry
         self._in_file_path_field = tkinter.ttk.Entry(self, # Make it a child of the main window object
                                                      width = 40,
-                                                     textvariable = self._in_file_path) # Bind to the self._in_file_path variable for changes
+                                                     textvariable = self._in_file_path, # Bind to the self._in_file_path variable for changes)
+                                                     state = tkinter.DISABLED)
         self._in_file_path_field.grid(row = 3, column = 0, # Place the entry in the UI grid
                                       padx = AnaPyzerView.WIDGET_X_PAD, pady = AnaPyzerView.WIDGET_Y_PAD, # Give it the global widget padding
                                       sticky = 'E,W') # Stick to the left of its cell
 
         # Create a Button object to open a file dialog box to allow the user to choose a file
         self._in_file_browse_button = tkinter.ttk.Button(self, # Make it a child of the main window object
-                                                      text = 'Browse...', # Set the button text
-                                                      command = self._on_browse_in_file_button_clicked)
+                                                         text = 'Browse...', # Set the button text
+                                                         command = self._on_in_file_browse_button_clicked)
         self._in_file_browse_button.grid(row = 3, column = 1, # Place the button in the UI grid
-                                      columnspan = 2, # Span across multiple columns in the UI grid
-                                      padx = AnaPyzerView.WIDGET_X_PAD, pady = AnaPyzerView.WIDGET_Y_PAD, # Give it the global widget padding
-                                      sticky = 'E') # Stick to the right of its cell
+                                         columnspan = 2, # Span across multiple columns in the UI grid
+                                         padx = AnaPyzerView.WIDGET_X_PAD, pady = AnaPyzerView.WIDGET_Y_PAD, # Give it the global widget padding
+                                         sticky = 'E') # Stick to the right of its cell
 
 
         # Create a Label object to describe the purpose of the log_type_spinbox Spinbox object to the user
@@ -117,7 +118,8 @@ class AnaPyzerView(tkinter.ttk.Frame):
         # Create an Entry object for the file path entry
         self._out_file_path_field = tkinter.ttk.Entry(self, # Make it a child of the main window object
                                                       width = 40,
-                                                      textvariable = self._out_file_path) # Bind to the self._out_file_path variable for changes
+                                                      textvariable = self._out_file_path, # Bind to the self._out_file_path variable for changes
+                                                      state = tkinter.DISABLED)
         self._out_file_path_field.grid(row = 7, column = 0, # Place the entry in the UI grid
                                        padx = AnaPyzerView.WIDGET_X_PAD, pady = AnaPyzerView.WIDGET_Y_PAD, # Give it the global widget padding
                                        sticky = 'E,W') # Stick to the left of its cell
@@ -125,7 +127,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
         # Create a Button object to open a file dialog box to allow the user to choose a file
         self._out_file_browse_button = tkinter.ttk.Button(self, # Make it a child of the main window object
                                                       text = 'Browse...', # Set the button text
-                                                      command = self._on_browse_out_file_button_clicked)
+                                                      command = self._on_out_file_browse_button_clicked)
         self._out_file_browse_button.grid(row = 7, column = 1, # Place the button in the UI grid
                                       columnspan = 2, # Span across multiple columns in the UI grid
                                       padx = AnaPyzerView.WIDGET_X_PAD, pady = AnaPyzerView.WIDGET_Y_PAD, # Give it the global widget padding
@@ -218,17 +220,25 @@ class AnaPyzerView(tkinter.ttk.Frame):
         if (self._log_type_option_changed):
             self._log_type_option_changed(value)
 
-    def _on_browse_in_file_button_clicked(self):
+    def _on_in_file_entry_changed(self, value):
+        if(self._in_file_entry_changed):
+            self._in_file_entry_changed(value)
+
+    def _on_in_file_browse_button_clicked(self):
         if (self._in_file_browse_button_clicked):
             self._in_file_browse_button_clicked()
-
-    def _on_browse_out_file_button_clicked(self):
-        if (self._out_file_browse_button_clicked):
-            self._out_file_browse_button_clicked()
 
     def _on_file_read_option_changed(self, value):
         if (self._file_read_option_changed):
             self._file_read_option_changed(value)
+
+    def _on_out_file_entry_changed(self):
+        if(self._out_file_entry_changed):
+            self._out_file_entry_changed()
+
+    def _on_out_file_browse_button_clicked(self):
+        if (self._out_file_browse_button_clicked):
+            self._out_file_browse_button_clicked()
 
     def _on_open_file_button_clicked(self):
         if (self._open_file_button_clicked):
@@ -238,14 +248,15 @@ class AnaPyzerView(tkinter.ttk.Frame):
     def add_log_type_option_changed_listener(self, listener):
         self._log_type_option_changed = listener
 
-    def add_browse_in_file_button_clicked_listener(self, listener):
+    def add_in_file_browse_button_clicked_listener(self, listener):
         self._in_file_browse_button_clicked = listener
-
-    def add_browse_out_file_button_clicked_listener(self, listener):
-        self._out_file_browse_button_clicked = listener
 
     def add_file_read_option_changed_listener(self, listener):
         self._file_read_option_changed = listener
+    
+    def add_out_file_browse_button_clicked_listener(self, listener):
+        self._out_file_browse_button_clicked = listener
 
     def add_open_file_button_clicked_listener(self, listener):
         self._open_file_button_clicked = listener
+
