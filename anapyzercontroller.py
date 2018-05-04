@@ -66,19 +66,21 @@ class AnaPyzerController():
 
     # Function for handling when the "Open" button is pressed
     def open_file_button_clicked(self):
+        # If we are in convert to CSV mode
         if (self.model.get_file_parse_mode() == self.model.FILE_PARSE_MODES[0]):
                 try:
                     self.model.read_file_to_csv()
                     self.success_event_listener("Converted to csv successfully.")
                 except AnaPyzerFileException as e:
                     if e.file_mode == 'r':
-                        self.error_event_listener("Could not read from file: " + e.file)
+                        self.error_event_listener("Could not read from file: " + str(e.file))
                     elif e.file_mode == 'w':
-                        self.error_event_listener("Could not write to file: " + e.file)
+                        self.error_event_listener("Could not write to file: " + str(e.file))
                     else:
                         self.error_event_listener("Unknown file I/O error.")
-        
-        self.update_view()
+        # Otherwise, if we are in generate graph mode
+        elif (self.model.get_file_parse_mode() == self.model.FILE_PARSE_MODES[1]):
+            self.view.display_graph_view()
 
     # Function for displaying an error message in the view
     def error_event_listener(self, message):
@@ -88,11 +90,15 @@ class AnaPyzerController():
     def success_event_listener(self, message):
         self.view.display_success_message(message)
 
+    # Function for updating the state of the view based on what has been set in the model
     def update_view(self):
-        self.view.set_in_file_path(self.model.get_in_file_path())
-        self.view.set_out_file_path(self.model.get_out_file_path())
+        # Set the input and output file paths to those set in the model.
+        self.view.set_in_file_path(str(self.model.get_in_file_path()))
+        self.view.set_out_file_path(str(self.model.get_out_file_path()))
 
+        # If we are in convert to CSV mode
         if (self.model.get_file_parse_mode() == AnaPyzerModel.FILE_PARSE_MODES[0]):
+            # Tell the view to show the output file path widgets
             self.view.show_out_file_path_widgets()
             self.view.disable_open_file_button()
             if (self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid()):
@@ -100,4 +106,3 @@ class AnaPyzerController():
         else:
             self.view.hide_out_file_path_widgets()
             self.view.enable_open_file_button()
-
