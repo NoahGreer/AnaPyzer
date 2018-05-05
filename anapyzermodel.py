@@ -3,6 +3,11 @@ import pathlib
 # Import the re library to support regular expressions
 import re
 
+import numpy as np
+import csv
+import matplotlib.pyplot as plt
+import pandas as pd
+
 class AnaPyzerModelException(Exception): pass
 
 class AnaPyzerFileException(AnaPyzerModelException):
@@ -19,9 +24,9 @@ class AnaPyzerFileException(AnaPyzerModelException):
 class AnaPyzerModel():
     # 'constant' for the accepted log file types
     ACCEPTED_LOG_TYPES = ['Apache (access.log)', 'IIS (u_ex*.log)']
-    ACCEPTED_FILE_FORMATS = [('log files','*.log')]
+    ACCEPTED_FILE_FORMATS = [('log files', '*.log')]
     FILE_PARSE_MODES = ['Convert to csv', 'Generate graph', 'Count IPs']
-    OUTPUT_FILE_FORMATS = [('CSV (Comma delimited)','*.csv')]
+    OUTPUT_FILE_FORMATS = [('CSV (Comma delimited)', '*.csv')]
 
     # Constructor
     def __init__(self):
@@ -71,7 +76,7 @@ class AnaPyzerModel():
         IP_address_counts = {}
 
         for line in in_file:
-            matchObj = re.match(regex_IP_pattern, line, flags = 0)
+            matchObj = re.match(regex_IP_pattern, line, flags=0)
             if matchObj:
                 if IP_address_counts.get(matchObj.group()):
                     IP_address_counts[matchObj.group()] += 1
@@ -107,3 +112,67 @@ class AnaPyzerModel():
         out_file.close()
 
         return True
+
+    # parse_W3C_to_list takes in the LWTechauth.txt file and parses it into a list.
+    # This method is going to be extensively rewritten so that it will be able to
+    def parse_W3C_to_list(file_name):
+        log_data = []
+        # open log file specified in file_name parameter
+        oFile = open(file_name, 'r')
+
+        # read the current line into a string variable called line
+        line = oFile.readline()[:-1]
+
+        # as long as there are lines in the file, loop:
+        while line:
+            # Split string into list of individual words
+            split_line = line.split(' ')
+            # this will prevent any lines that are not valid data lines from being moved to the list
+            if '#' not in split_line[0]:
+                log_data.append(split_line)
+
+            line = oFile.readline()[:-1]
+        # close the file once you're done getting all of the line information
+        oFile.close()
+        # return the list
+
+    def get_connections_per_hour(log):
+        connections_per_hour_table = {}
+        for data in log:
+            # iterate through the ip addresses recorded
+            time_string = str(data[1])
+            hours = time_string[:2]
+            user_ip_address = str(data[8])
+
+            if connections_per_hour_table.get(hours):
+                connections_per_hour_table[hours] += [user_ip_address]
+            else:
+                connections_per_hour_table[hours] = [user_ip_address]
+
+        for time in connections_per_hour_table:
+            ip_count = len(set(connections_per_hour_table[time]))
+            connections_per_hour_table[time] = ip_count
+
+        # for time in connections_per_hour_table:
+        #     print(str(connections_per_hour_table[time]) + " unique connections at "+ time)
+        return connections_per_hour_table
+
+    containing CSV data
+        return log_data
+
+    # The plot_connections method will take in a log formatted by the above method
+
+    def announce_connections(connections_log):
+        for log in connections_log:
+            print(str(connections_log[log]) + " unique connections found at " + log)
+
+    # The plot_connections method will take in a log formatted by the above method
+    def plot_connections(connections_log):
+        plt.xlabel("Hour of Day")
+        plt.ylabel("Unique IPs Accessing")
+        # plt.legend(title=str(connections_log[0][0]))
+        # plot the data in a very ugly chart (figure out how to beautify)
+        plt.plot(connections_log.keys(), connections_log.values())
+
+        # show the newly created data plot.
+        plt.show()

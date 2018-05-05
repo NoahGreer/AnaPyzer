@@ -7,6 +7,7 @@ import tkinter.filedialog
 # Import the tkMessageBox subclass to allow showing system error messages
 import tkinter.messagebox
 
+
 # Class definition for the View part of the MVC design pattern
 # Extends the tkinter.ttk.Frame object
 class AnaPyzerView(tkinter.ttk.Frame):
