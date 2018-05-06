@@ -3,25 +3,14 @@ import pathlib
 # Import the re library to support regular expressions
 import re
 
-class AnaPyzerModelException(Exception): pass
-
-class AnaPyzerFileException(AnaPyzerModelException):
-    def __init__(self, file=None, file_mode=None, *args, **kwargs):
-        self.file = file
-        self.file_mode = file_mode
-
-    def __repr__(self):
-        return u"AnaPyzerFileException(file={0!r}, file_mode={1!r})".format(self.file, self.file_mode)
-
-    __str__ = __repr__
-
 # Class definition for the file reader of the application
 class AnaPyzerModel():
 
     # 'constant' for the accepted log file types
-    ACCEPTED_LOG_TYPES = ['Apache (access.log)', 'IIS (u_ex*.log)']
+    ACCEPTED_LOG_TYPES = ['Apache (access.log)'] # TODO add 'IIS (u_ex*.log)' later
     ACCEPTED_FILE_FORMATS = [('log files','*.log')]
-    FILE_PARSE_MODES = ['Convert to csv', 'Generate graph', 'Count IPs']
+    FILE_PARSE_MODES = ['Convert to csv', 'Generate graph']
+    GRAPH_MODES = ['Connections per minute', 'Simultaneous connections']
     OUTPUT_FILE_FORMATS = [('CSV (Comma delimited)','*.csv')]
 
     # Constructor
@@ -32,13 +21,15 @@ class AnaPyzerModel():
         self._log_type = AnaPyzerModel.ACCEPTED_LOG_TYPES[0]
         self._file_parse_mode = AnaPyzerModel.FILE_PARSE_MODES[0]
 
+        self._error_listener = None
+
     # Setter for the file path to the input file
     # Takes a string for the file path
     def set_in_file_path(self, in_file_path):
         # If the input file path was set, set the model's file path equal to it
         if in_file_path:
             self._in_file_path = pathlib.Path(in_file_path)
-        # Otherwise set the model's file path equal to the current working directory
+        # Otherwise set the model's file path equal to the default file path
         else:
             self._in_file_path = pathlib.Path(self.DEFAULT_FILE_PATH)
 
@@ -50,6 +41,7 @@ class AnaPyzerModel():
             in_file_path = ''
         return in_file_path
 
+    # Validation method that determines whether the input file path that is currently set in the model is valid
     def in_file_path_is_valid(self):
         return pathlib.Path(self._in_file_path).is_file()
 
@@ -80,6 +72,7 @@ class AnaPyzerModel():
             out_file_path = ''
         return out_file_path
 
+    # Validation method that determines whether the output file path that is currently set in the model is valid
     def out_file_path_is_valid(self):
         is_valid = False
 
@@ -91,6 +84,7 @@ class AnaPyzerModel():
 
         return is_valid
 
+    # Setter for the type of input log file that will be read
     def set_log_type(self, log_type):
         self._log_type = log_type
 
@@ -99,13 +93,15 @@ class AnaPyzerModel():
     def get_log_type(self):
         return self._log_type
 
+    # Setter for how the input file will be parsed
     def set_file_parse_mode(self, file_parse_mode):
         self._file_parse_mode = file_parse_mode
 
+    # Setter for how the input file will be parsed
     def get_file_parse_mode(self):
         return self._file_parse_mode
 
-    # Read the file
+    # Read the input file that is currently set in the model.
     def read_file(self):
         try:
             in_file = open(self.in_file_path, 'r')
@@ -137,14 +133,16 @@ class AnaPyzerModel():
     def read_file_to_csv(self):
         try:
             in_file = open(self._in_file_path, 'r')
-        except:
-            raise AnaPyzerFileException(file = self._in_file_path, file_mode = 'r')
+        except IOError as e:
+            self._on_error("Could not read from file:\n" + e.filename + "\n" + e.strerror)
+            return False
 
         try:
             out_file = open(self._out_file_path, 'w')
-        except:
+        except IOError as e:
             in_file.close()
-            raise AnaPyzerFileException(file = self._out_file_path, file_mode = 'w')
+            self._on_error("Could not write to file:\n" + e.filename + "\n" + e.strerror)
+            return False
 
         for line in in_file:
             converted_line = re.sub("\s+", ",", line.strip())
@@ -154,3 +152,10 @@ class AnaPyzerModel():
         out_file.close()
 
         return True
+
+    def add_error_listener(self, listener):
+        self._error_listener = listener
+
+    def _on_error(self, error):
+        if (self._error_listener):
+            self._error_listener(error)
