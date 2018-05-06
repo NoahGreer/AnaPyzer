@@ -22,6 +22,7 @@ class AnaPyzerModel():
         self._file_parse_mode = AnaPyzerModel.FILE_PARSE_MODES[0]
 
         self._error_listener = None
+        self._success_listener = None
 
     # Setter for the file path to the input file
     # Takes a string for the file path
@@ -103,33 +104,10 @@ class AnaPyzerModel():
 
     # Read the input file that is currently set in the model.
     def read_file(self):
-        try:
-            in_file = open(self.in_file_path, 'r')
-        except:
-            return None
+        if (self._file_parse_mode == self.FILE_PARSE_MODES[0]):
+            self.read_file_to_csv()
 
-        # Regex pattern for IPv4 addresses retrieved from https://www.regular-expressions.info/ip.html
-        regex_IP_pattern = r'\b(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b'
-        # Create the 'IP_address_counts' dictionary to count the IP addresses
-        IP_address_counts = {}
-
-        for line in in_file:
-            matchObj = re.match(regex_IP_pattern, line, flags = 0)
-            if matchObj:
-                if IP_address_counts.get(matchObj.group()):
-                    IP_address_counts[matchObj.group()] += 1
-                else:
-                    IP_address_counts[matchObj.group()] = 1
-
-        in_file.close()
-
-        output_string = ''
-
-        for IP_address, count in IP_address_counts.items():
-            output_string += '{} : {}\n'.format(IP_address, count)
-
-        return output_string
-
+    # Reads from the input file, converts to csv, and writes to the output file
     def read_file_to_csv(self):
         try:
             in_file = open(self._in_file_path, 'r')
@@ -151,6 +129,7 @@ class AnaPyzerModel():
         in_file.close()
         out_file.close()
 
+        self._on_success("Successfully converted log file to csv")
         return True
 
     def add_error_listener(self, listener):
@@ -159,3 +138,10 @@ class AnaPyzerModel():
     def _on_error(self, error):
         if (self._error_listener):
             self._error_listener(error)
+
+    def add_success_listener(self, listener):
+        self._error_listener = listener
+
+    def _on_success(self, status_message):
+        if (self._success_listener):
+            self._success_listener(status_message)

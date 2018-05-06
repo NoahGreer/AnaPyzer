@@ -30,6 +30,7 @@ class AnaPyzerController():
 
         # Register listenters in the model
         self.model.add_error_listener(self.error_event_listener)
+        self.model.add_success_listener(self.success_event_listener)
 
     # Start the application
     def run(self):
@@ -68,6 +69,7 @@ class AnaPyzerController():
 
     # Function for handling when the "Open" button is pressed
     def open_file_button_clicked(self):
+        self.model.read_file()
         # If we are in convert to CSV mode
         if (self.model.get_file_parse_mode() == self.model.FILE_PARSE_MODES[0]):
                 if (self.model.read_file_to_csv()):
