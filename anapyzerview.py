@@ -131,8 +131,8 @@ class AnaPyzerView(tkinter.ttk.Frame):
                                                       text = 'Browse...', # Set the button text
                                                       command = self._on_out_file_browse_button_clicked)
         self._out_file_browse_button.grid(row = 5, column = 3, # Place the button in the UI grid
-                                      padx = AnaPyzerView.WIDGET_X_PAD, pady = AnaPyzerView.WIDGET_Y_PAD, # Give it the global widget padding
-                                      sticky = tkinter.E) # Stick to the right of its cell
+                                          padx = AnaPyzerView.WIDGET_X_PAD, pady = AnaPyzerView.WIDGET_Y_PAD, # Give it the global widget padding
+                                          sticky = tkinter.E) # Stick to the right of its cell
 
         # Create a Button object to open the file specified in the file_path_field entry box
         self._open_file_button = tkinter.ttk.Button(self, # Make it a child of the main window object
@@ -225,7 +225,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._out_file_browse_button.grid_remove()
 
 
-    # Internal methods to call external listener Methods
+    # Internal methods to call external listener methods
     # Needed because the TkInter UI widgets cannot have their 'command' redefined after being instantiated
     # So the widgets are instantiated pointing at these methods which will call the external listener methods
     def _on_log_type_option_changed(self, value):

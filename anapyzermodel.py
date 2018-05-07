@@ -132,16 +132,20 @@ class AnaPyzerModel():
         self._on_success("Successfully converted log file to csv")
         return True
 
-    def add_error_listener(self, listener):
-        self._error_listener = listener
-
+    # Internal methods to call external listener methods
+    # Method to call when a file IO error occurs
     def _on_error(self, error):
         if (self._error_listener):
             self._error_listener(error)
 
-    def add_success_listener(self, listener):
-        self._error_listener = listener
-
+    # Method to call when a file was sucessfully read
     def _on_success(self, status_message):
         if (self._success_listener):
             self._success_listener(status_message)
+
+    # Methods to add listener methods for the internal listener methods to call outside of this class
+    def add_error_listener(self, listener):
+        self._error_listener = listener
+
+    def add_success_listener(self, listener):
+        self._error_listener = listener
