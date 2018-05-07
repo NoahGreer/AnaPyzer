@@ -82,6 +82,16 @@ class AnaPyzerController():
         elif (self.model.get_file_parse_mode() == self.model.FILE_PARSE_MODES[1]):
             self.view.display_graph_view()
 
+        # if we are in generate connections report mode
+        elif self.model.get_file_parse_mode() == self.model.FILE_PARSE_MODES[3]:
+            # self.success_event_listener(self.model.get_in_file_path())
+            connections_list = self.model.parse_w3c_to_list()
+            # self.success_event_listener("File parsed to list")
+            connections_per_hour_dict = self.model.get_connections_per_hour(connections_list)
+            # self.success_event_listener("Connections per hour list created!")
+            self.model.plot_connections(connections_per_hour_dict)
+            # self.success_event_listener("Finished processing connections list")
+
     # Function for displaying an error message in the view
     def error_event_listener(self, message):
         self.view.display_error_message(message)
