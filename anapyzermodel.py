@@ -3,31 +3,15 @@ import pathlib
 # Import the re library to support regular expressions
 import re
 
-import numpy as np
-import csv
-import matplotlib.pyplot as plt
-import pandas as pd
-
-class AnaPyzerModelException(Exception): pass
-
-class AnaPyzerFileException(AnaPyzerModelException):
-    def __init__(self, file=None, file_mode=None, *args, **kwargs):
-        self.file = file
-        self.file_mode = file_mode
-
-    def __repr__(self):
-        return u"AnaPyzerFileException(file={0!r}, file_mode={1!r})".format(self.file, self.file_mode)
-
-    __str__ = __repr__
-
 # Class definition for the file reader of the application
 class AnaPyzerModel():
 
     # 'constant' for the accepted log file types
     ACCEPTED_LOG_TYPES = ['Apache (access.log)', 'IIS (u_ex*.log)']
-    ACCEPTED_FILE_FORMATS = [('log files', '*.log')]
+    ACCEPTED_FILE_FORMATS = [('log files','*.log')]
     FILE_PARSE_MODES = ['Convert to csv', 'Generate graph', 'Count IPs', 'Report Connections Per Hour']
-    OUTPUT_FILE_FORMATS = [('CSV (Comma delimited)', '*.csv')]
+    GRAPH_MODES = ['Connections per minute', 'Simultaneous connections']
+    OUTPUT_FILE_FORMATS = [('CSV (Comma delimited)','*.csv')]
 
     # Constructor
     def __init__(self):
@@ -37,13 +21,16 @@ class AnaPyzerModel():
         self._log_type = AnaPyzerModel.ACCEPTED_LOG_TYPES[0]
         self._file_parse_mode = AnaPyzerModel.FILE_PARSE_MODES[0]
 
+        self._error_listener = None
+        self._success_listener = None
+
     # Setter for the file path to the input file
     # Takes a string for the file path
     def set_in_file_path(self, in_file_path):
         # If the input file path was set, set the model's file path equal to it
         if in_file_path:
             self._in_file_path = pathlib.Path(in_file_path)
-        # Otherwise set the model's file path equal to the current working directory
+        # Otherwise set the model's file path equal to the default file path
         else:
             self._in_file_path = pathlib.Path(self.DEFAULT_FILE_PATH)
 
@@ -55,6 +42,7 @@ class AnaPyzerModel():
             in_file_path = ''
         return in_file_path
 
+    # Validation method that determines whether the input file path that is currently set in the model is valid
     def in_file_path_is_valid(self):
         return pathlib.Path(self._in_file_path).is_file()
 
@@ -85,6 +73,7 @@ class AnaPyzerModel():
             out_file_path = ''
         return out_file_path
 
+    # Validation method that determines whether the output file path that is currently set in the model is valid
     def out_file_path_is_valid(self):
         is_valid = False
 
@@ -96,6 +85,7 @@ class AnaPyzerModel():
 
         return is_valid
 
+    # Setter for the type of input log file that will be read
     def set_log_type(self, log_type):
         self._log_type = log_type
 
@@ -104,52 +94,33 @@ class AnaPyzerModel():
     def get_log_type(self):
         return self._log_type
 
+    # Setter for how the input file will be parsed
     def set_file_parse_mode(self, file_parse_mode):
         self._file_parse_mode = file_parse_mode
 
+    # Setter for how the input file will be parsed
     def get_file_parse_mode(self):
         return self._file_parse_mode
 
-    # Read the file
+    # Read the input file that is currently set in the model.
     def read_file(self):
-        try:
-            in_file = open(self.in_file_path, 'r')
-        except:
-            return None
+        if (self._file_parse_mode == self.FILE_PARSE_MODES[0]):
+            self.read_file_to_csv()
 
-        # Regex pattern for IPv4 addresses retrieved from https://www.regular-expressions.info/ip.html
-        regex_IP_pattern = r'\b(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\b'
-        # Create the 'IP_address_counts' dictionary to count the IP addresses
-        IP_address_counts = {}
-
-        for line in in_file:
-            matchObj = re.match(regex_IP_pattern, line, flags=0)
-            if matchObj:
-                if IP_address_counts.get(matchObj.group()):
-                    IP_address_counts[matchObj.group()] += 1
-                else:
-                    IP_address_counts[matchObj.group()] = 1
-
-        in_file.close()
-
-        output_string = ''
-
-        for IP_address, count in IP_address_counts.items():
-            output_string += '{} : {}\n'.format(IP_address, count)
-
-        return output_string
-
+    # Reads from the input file, converts to csv, and writes to the output file
     def read_file_to_csv(self):
         try:
             in_file = open(self._in_file_path, 'r')
-        except:
-            raise AnaPyzerFileException(file = self._in_file_path, file_mode = 'r')
+        except IOError as e:
+            self._on_error("Could not read from file:\n" + e.filename + "\n" + e.strerror)
+            return False
 
         try:
             out_file = open(self._out_file_path, 'w')
-        except:
+        except IOError as e:
             in_file.close()
-            raise AnaPyzerFileException(file = self._out_file_path, file_mode = 'w')
+            self._on_error("Could not write to file:\n" + e.filename + "\n" + e.strerror)
+            return False
 
         for line in in_file:
             converted_line = re.sub("\s+", ",", line.strip())
@@ -158,7 +129,26 @@ class AnaPyzerModel():
         in_file.close()
         out_file.close()
 
+        self._on_success("Successfully converted log file to csv")
         return True
+
+    # Internal methods to call external listener methods
+    # Method to call when a file IO error occurs
+    def _on_error(self, error):
+        if (self._error_listener):
+            self._error_listener(error)
+
+    # Method to call when a file was sucessfully read
+    def _on_success(self, status_message):
+        if (self._success_listener):
+            self._success_listener(status_message)
+
+    # Methods to add listener methods for the internal listener methods to call outside of this class
+    def add_error_listener(self, listener):
+        self._error_listener = listener
+
+    def add_success_listener(self, listener):
+        self._error_listener = listener
 
     # this method will analyze the w3c formatted log file currently selected in the GUI
     # and parse it out into a list containing information pertaining to client ip and time of access
@@ -277,4 +267,3 @@ class AnaPyzerModel():
 
         # show the newly created data plot.
         plt.show()
-

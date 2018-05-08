@@ -21,13 +21,16 @@ class AnaPyzerController():
         self.view.set_in_file_path(self.model.get_in_file_path())
         self.view.set_out_file_path(self.model.get_out_file_path())
 
-        # Register listeners in the view before creating the widgets because the
-        # widgets do not allow changing the callback method after they have been created
+        # Register listeners in the view
         self.view.add_in_file_browse_button_clicked_listener(self.in_file_browse_button_clicked)
         self.view.add_out_file_browse_button_clicked_listener(self.out_file_browse_button_clicked)
         self.view.add_open_file_button_clicked_listener(self.open_file_button_clicked)
         self.view.add_log_type_option_changed_listener(self.log_type_option_changed)
         self.view.add_file_read_option_changed_listener(self.file_read_option_changed)
+
+        # Register listenters in the model
+        self.model.add_error_listener(self.error_event_listener)
+        self.model.add_success_listener(self.success_event_listener)
 
     # Start the application
     def run(self):
@@ -66,18 +69,12 @@ class AnaPyzerController():
 
     # Function for handling when the "Open" button is pressed
     def open_file_button_clicked(self):
+        self.model.read_file()
         # If we are in convert to CSV mode
         if (self.model.get_file_parse_mode() == self.model.FILE_PARSE_MODES[0]):
-                try:
-                    self.model.read_file_to_csv()
+                if (self.model.read_file_to_csv()):
                     self.success_event_listener("Converted to csv successfully.")
-                except AnaPyzerFileException as e:
-                    if e.file_mode == 'r':
-                        self.error_event_listener("Could not read from file: " + str(e.file))
-                    elif e.file_mode == 'w':
-                        self.error_event_listener("Could not write to file: " + str(e.file))
-                    else:
-                        self.error_event_listener("Unknown file I/O error.")
+
         # Otherwise, if we are in generate graph mode
         elif (self.model.get_file_parse_mode() == self.model.FILE_PARSE_MODES[1]):
             self.view.display_graph_view()
