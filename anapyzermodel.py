@@ -1,25 +1,48 @@
+# Import the enum class for better readability
+import enum
 # Import the pathlib library for cross platform file path abstraction
 import pathlib
 # Import the re library to support regular expressions
 import re
 
+import matplotlib.pyplot
+
+# Enumeration for the accepted log types
+class AcceptedLogTypes(enum.Enum):
+    APACHE = 'Apache (access.log)'
+    IIS = 'IIS (u_ex*.log)'
+    DEFAULT = APACHE
+
+class AcceptedFileFormats(enum.Enum):
+    LOG = ('log files','*.log')
+    DEFAULT = LOG
+
+class FileParseModes(enum.Enum):
+    GRAPH = 'Generate graph'
+    CSV = 'Convert to csv'
+    DEFAULT = GRAPH
+
+class GraphModes(enum.Enum):
+    CON_PER_HOUR = 'Connections per hour'
+    # CON_PER_MIN = 'Connections per minute'
+    SIMUL_CON = 'Simultaneous connections'
+    DEFAULT = CON_PER_HOUR
+
+class OutputFileFormats(enum.Enum):
+    CSV = ('CSV (Comma delimited)','*.csv')
+    DEFAULT = CSV
+
 # Class definition for the file reader of the application
 class AnaPyzerModel():
-
-    # 'constant' for the accepted log file types
-    ACCEPTED_LOG_TYPES = ['Apache (access.log)', 'IIS (u_ex*.log)']
-    ACCEPTED_FILE_FORMATS = [('log files','*.log')]
-    FILE_PARSE_MODES = ['Convert to csv', 'Generate graph', 'Count IPs', 'Report Connections Per Hour']
-    GRAPH_MODES = ['Connections per minute', 'Simultaneous connections']
-    OUTPUT_FILE_FORMATS = [('CSV (Comma delimited)','*.csv')]
 
     # Constructor
     def __init__(self):
         self.DEFAULT_FILE_PATH = pathlib.Path.home()
         self._in_file_path = pathlib.Path('')
         self._out_file_path = pathlib.Path('')
-        self._log_type = AnaPyzerModel.ACCEPTED_LOG_TYPES[0]
-        self._file_parse_mode = AnaPyzerModel.FILE_PARSE_MODES[0]
+        self._log_type = AcceptedLogTypes.DEFAULT
+        self._file_parse_mode = FileParseModes.DEFAULT
+        self._graph_mode = GraphModes.DEFAULT
 
         self._error_listener = None
         self._success_listener = None
@@ -52,7 +75,7 @@ class AnaPyzerModel():
         # If the input file path was set, set the model's file path equal to it
         if out_file_path:
             # If we are in convert to CSV mode
-            if self._file_parse_mode == AnaPyzerModel.FILE_PARSE_MODES[0]: # CSV
+            if self._file_parse_mode == FileParseModes.CSV:
                 # Get the suffix of the output file
                 out_file_suffix = str(pathlib.PurePath(out_file_path).suffix)
                 # If it is not '.csv'
@@ -87,25 +110,28 @@ class AnaPyzerModel():
 
     # Setter for the type of input log file that will be read
     def set_log_type(self, log_type):
-        self._log_type = log_type
+        self._log_type = AcceptedLogTypes(log_type)
 
-    # Getter for the model's file type of the expected input log type
+    # Getter for the model's file type for the expected input log type
     # Returns a string representing the expected input log type
     def get_log_type(self):
         return self._log_type
 
     # Setter for how the input file will be parsed
     def set_file_parse_mode(self, file_parse_mode):
-        self._file_parse_mode = file_parse_mode
+        self._file_parse_mode = FileParseModes(file_parse_mode)
 
-    # Setter for how the input file will be parsed
+    # Getter for how the input file will be parsed
     def get_file_parse_mode(self):
         return self._file_parse_mode
 
-    # Read the input file that is currently set in the model.
-    def read_file(self):
-        if (self._file_parse_mode == self.FILE_PARSE_MODES[0]):
-            self.read_file_to_csv()
+    # Setter for the type of graph to generate
+    def set_graph_mode(self, graph_mode):
+        self._graph_mode = GraphModes(graph_mode)
+
+    # Getter for the type of graph to generate
+    def get_graph_mode(self):
+        return self._graph_mode
 
     # Reads from the input file, converts to csv, and writes to the output file
     def read_file_to_csv(self):
@@ -174,7 +200,7 @@ class AnaPyzerModel():
 
                 if '#Date' in split_line[0] and log_data['date'] == -1:
                     log_data['date'] = split_line[1]
-                    print("Date of record: " + log_data['date'])
+                    # print("Date of record: " + log_data['date'])
 
                 if '#Fields' in split_line[0]:
                     # print("There is a fields line")
@@ -253,17 +279,17 @@ class AnaPyzerModel():
 
     # The plot_connections method will take in a log formatted by the above method
     def plot_connections(self, connections_log):
-        plt.figure()
-        plt.xlabel("Hour of Day")
-        plt.ylabel("Unique IPs Accessing")
+        matplotlib.pyplot.figure()
+        matplotlib.pyplot.xlabel("Hour of Day")
+        matplotlib.pyplot.ylabel("Unique IPs Accessing")
         # plt.legend(title=str(connections_log[0][0]))
         # plot the data in a very ugly chart (figure out how to beautify)
 
-        plt.plot(connections_log.keys(), connections_log.values())
+        matplotlib.pyplot.plot(connections_log.keys(), connections_log.values())
         report_string = ''
 
         for line in connections_log:
             report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
 
         # show the newly created data plot.
-        plt.show()
+        matplotlib.pyplot.show()
