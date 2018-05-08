@@ -24,7 +24,7 @@ class FileParseModes(enum.Enum):
 
 class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
-    CON_PER_MIN = 'Connections per minute'
+    # CON_PER_MIN = 'Connections per minute'
     SIMUL_CON = 'Simultaneous connections'
     DEFAULT = CON_PER_HOUR
 
