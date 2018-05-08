@@ -76,7 +76,6 @@ class AnaPyzerController():
 
     # Function for handling when the "Open" button is pressed
     def open_file_button_clicked(self):
-        self.model.read_file()
         # If we are in convert to CSV mode
         if (self.model.get_file_parse_mode() == FileParseModes.CSV):
                 if (self.model.read_file_to_csv()):
@@ -119,4 +118,6 @@ class AnaPyzerController():
         else:
             self.view.hide_out_file_path_widgets()
             self.view.show_graph_mode_option_menu_widgets()
-            self.view.enable_open_file_button()
+            self.view.disable_open_file_button()
+            if (self.model.in_file_path_is_valid()):
+                self.view.enable_open_file_button()

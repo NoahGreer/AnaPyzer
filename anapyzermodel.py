@@ -1,8 +1,11 @@
+# Import the enum class for better readability
+import enum
 # Import the pathlib library for cross platform file path abstraction
 import pathlib
 # Import the re library to support regular expressions
 import re
-import enum
+
+import matplotlib.pyplot
 
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
@@ -23,7 +26,7 @@ class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
     CON_PER_MIN = 'Connections per minute'
     SIMUL_CON = 'Simultaneous connections'
-    DEFAULT = CON_PER_MIN
+    DEFAULT = CON_PER_HOUR
 
 class OutputFileFormats(enum.Enum):
     CSV = ('CSV (Comma delimited)','*.csv')
@@ -197,7 +200,7 @@ class AnaPyzerModel():
 
                 if '#Date' in split_line[0] and log_data['date'] == -1:
                     log_data['date'] = split_line[1]
-                    print("Date of record: " + log_data['date'])
+                    # print("Date of record: " + log_data['date'])
 
                 if '#Fields' in split_line[0]:
                     # print("There is a fields line")
@@ -276,17 +279,17 @@ class AnaPyzerModel():
 
     # The plot_connections method will take in a log formatted by the above method
     def plot_connections(self, connections_log):
-        plt.figure()
-        plt.xlabel("Hour of Day")
-        plt.ylabel("Unique IPs Accessing")
+        matplotlib.pyplot.figure()
+        matplotlib.pyplot.xlabel("Hour of Day")
+        matplotlib.pyplot.ylabel("Unique IPs Accessing")
         # plt.legend(title=str(connections_log[0][0]))
         # plot the data in a very ugly chart (figure out how to beautify)
 
-        plt.plot(connections_log.keys(), connections_log.values())
+        matplotlib.pyplot.plot(connections_log.keys(), connections_log.values())
         report_string = ''
 
         for line in connections_log:
             report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
 
         # show the newly created data plot.
-        plt.show()
+        matplotlib.pyplot.show()

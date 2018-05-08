@@ -204,19 +204,22 @@ class AnaPyzerView(tkinter.ttk.Frame):
         return out_file_path
 
     # Method to set the log type options in the log type options menu
-    def set_log_type_options(self, log_types):
+    def set_log_type_options(self, log_type_options):
         # Set new options
-        self._log_type_option_menu.set_menu(log_types[0], *log_types)
+        self._log_type_option_menu.set_menu(log_type_options[0], *log_type_options)
+        self._on_log_type_option_changed(log_type_options[0])
 
     # Method to set the file read mode options in the file read options menu
     def set_file_read_options(self, file_read_options):
         # Set new options
         self._file_read_option_menu.set_menu(file_read_options[0], *file_read_options)
+        self._on_file_read_option_changed(file_read_options[0])
 
     # Method to set the graph options in the graph options menu
     def set_graph_mode_options(self, graph_mode_options):
         # Set new options
         self._graph_mode_option_menu.set_menu(graph_mode_options[0], *graph_mode_options)
+        self._on_graph_mode_option_changed(graph_mode_options[0])
 
     # Method to set the in file path text
     def set_in_file_path(self, in_file_path):
