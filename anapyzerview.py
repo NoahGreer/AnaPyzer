@@ -11,6 +11,7 @@ import matplotlib
 import numpy
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+
 # Class definition for the View part of the MVC design pattern
 # Extends the tkinter.ttk.Frame object
 class AnaPyzerView(tkinter.ttk.Frame):
@@ -156,6 +157,11 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self.graph_view_window = tkinter.Toplevel(self)
         self.graph_view = AnaPyzerGraphView(self.graph_view_window)
 
+    # placeholder
+    def display_connections_plot(self):
+        self.graph_view_window = matplotlib.pyplot.plot(self._)
+
+
     # Method to tell the view to prompt the user to select a file
     # Takes a string for the starting directory,
     # and an array of tuples for the allowed file types
@@ -208,7 +214,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
     def enable_open_file_button(self):
         self._open_file_button.configure(state = tkinter.NORMAL)
 
-     # Method to disable the open file button from being clicked
+    # Method to disable the open file button from being clicked
     def disable_open_file_button(self):
         self._open_file_button.configure(state = tkinter.DISABLED)
 
@@ -218,12 +224,11 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._out_file_path_field.grid()
         self._out_file_browse_button.grid()
 
-     # Method to disable the open file button from being clicked
+    # Method to disable the open file button from being clicked
     def hide_out_file_path_widgets(self):
         self._out_file_path_field_label.grid_remove()
         self._out_file_path_field.grid_remove()
         self._out_file_browse_button.grid_remove()
-
 
     # Internal methods to call external listener methods
     # Needed because the TkInter UI widgets cannot have their 'command' redefined after being instantiated
@@ -271,6 +276,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
     def add_open_file_button_clicked_listener(self, listener):
         self._open_file_button_clicked = listener
+
 
 # Class definition for the Graph View child window class
 # Extends the tkinter.ttk.Frame object

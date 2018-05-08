@@ -7,9 +7,9 @@ import re
 class AnaPyzerModel():
 
     # 'constant' for the accepted log file types
-    ACCEPTED_LOG_TYPES = ['Apache (access.log)'] # TODO add 'IIS (u_ex*.log)' later
+    ACCEPTED_LOG_TYPES = ['Apache (access.log)', 'IIS (u_ex*.log)']
     ACCEPTED_FILE_FORMATS = [('log files','*.log')]
-    FILE_PARSE_MODES = ['Convert to csv', 'Generate graph']
+    FILE_PARSE_MODES = ['Convert to csv', 'Generate graph', 'Count IPs', 'Report Connections Per Hour']
     GRAPH_MODES = ['Connections per minute', 'Simultaneous connections']
     OUTPUT_FILE_FORMATS = [('CSV (Comma delimited)','*.csv')]
 
@@ -149,3 +149,121 @@ class AnaPyzerModel():
 
     def add_success_listener(self, listener):
         self._error_listener = listener
+
+    # this method will analyze the w3c formatted log file currently selected in the GUI
+    # and parse it out into a list containing information pertaining to client ip and time of access
+    def parse_w3c_to_list(self):
+        log_data = {}
+        # open log file specified in file_name parameter
+        o_file = open(self._in_file_path, 'r')
+        log_data['time'] = -1
+        log_data['c-ip'] = -1
+        log_data['date'] = -1
+        # read the current line into a string variable called line
+        line = o_file.readline()[:-1]
+
+        i = 0
+        # as long as there are lines in the file, loop:
+        while line:
+            # Split string into list of individual words
+            split_line = line.split(' ')
+
+            # this will prevent any lines that are not valid data lines from being moved to the list
+            if '#' in split_line[0]:
+                log_data[str(split_line[0])] = split_line
+
+                if '#Date' in split_line[0] and log_data['date'] == -1:
+                    log_data['date'] = split_line[1]
+                    print("Date of record: " + log_data['date'])
+
+                if '#Fields' in split_line[0]:
+                    # print("There is a fields line")
+
+                    j = 0
+                    for element in split_line:
+
+                        if 'c-ip' in element:
+                            log_data['c-ip'] = j - 1
+                            # print("c-ip data stored in line "+str(j))
+
+                        if element == 'time':
+                            log_data['time'] = j - 1
+                            # print("time data stored in line "+str(j))
+                        j += 1
+
+            else:
+                if log_data['c-ip'] == -1:
+                    print("No user IP address information found in header")
+                    break
+                if log_data['time'] == -1:
+                    print("No time information found in header")
+                    break
+
+                # print("log_data["+str(i)+"] = "+str(split_line))
+                log_data[i] = split_line
+                i += 1
+
+            line = o_file.readline()[:-1]
+        # close the file once you're done getting all of the line information
+        log_data['length'] = i
+        o_file.close()
+        # return the list containing CSV data
+        return log_data
+
+    # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
+    # and returns a list containing how many unique ip connections were present during each hour of the day
+    # this parsed list can be used with the plot_hourly_connections method
+    def get_connections_per_hour(self, parsed_log):
+        connections_per_hour_table = {}
+        # print("getting connections per hour")
+        time_place = parsed_log['time']
+        cip_place = parsed_log['c-ip']
+
+        i = 0
+        while i < parsed_log['length']:
+            # iterate through the ip addresses recorded
+            time_string = parsed_log[i][time_place]
+            user_ip_address = parsed_log[i][cip_place]
+
+            time_string = str(time_string)
+            user_ip_address = str(user_ip_address)
+            # print("Time string = " + time_string)
+            # print("IP address = "+ user_ip_address)
+            hours = time_string[:2]
+
+            i += 1
+            if connections_per_hour_table.get(hours):
+                connections_per_hour_table[hours] += [user_ip_address]
+            else:
+                connections_per_hour_table[hours] = [user_ip_address]
+
+        for time in connections_per_hour_table:
+            ip_count = len(set(connections_per_hour_table[time]))
+            connections_per_hour_table[time] = ip_count
+
+        # print("connections per hour report complete")
+        # for time in connections_per_hour_table:
+        #     print(str(connections_per_hour_table[time]) + " unique connections at "+ time)
+        return connections_per_hour_table
+
+    # The plot_connections method take a log formatted by the get_connections_per_hour method
+    def announce_connections(self, connections_log):
+        for log in connections_log:
+            print(str(connections_log[log]) + " unique connections found at " + log + ":00")
+
+    # The plot_connections method will take in a log formatted by the above method
+    def plot_connections(self, connections_log):
+        plt.figure()
+        plt.xlabel("Hour of Day")
+        plt.ylabel("Unique IPs Accessing")
+        # plt.legend(title=str(connections_log[0][0]))
+        # plot the data in a very ugly chart (figure out how to beautify)
+
+        plt.plot(connections_log.keys(), connections_log.values())
+        report_string = ''
+
+        for line in connections_log:
+            report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
+
+        # show the newly created data plot.
+        plt.show()
