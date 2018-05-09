@@ -5,8 +5,9 @@ from anapyzerview import *
 # Import the pathlib library for cross platform file path abstraction
 import pathlib
 
+
 # Class definition for the Controller part of the MVC design pattern
-class AnaPyzerController():
+class AnaPyzerController:
     # Constructor
     # Takes a view and a model object
     def __init__(self, view, model):
@@ -57,8 +58,9 @@ class AnaPyzerController():
     # Function for handling when the in file "Browse..." button is pressed
     def in_file_browse_button_clicked(self):
         # Get a new file path by prompting the user with a file selection dialog
-        in_file_path = self.view.display_in_file_select_prompt(self.model.get_in_file_path(),
-                                                               [format.value for format in AcceptedFileFormats])
+        in_file_path = self.view.display_in_file_select_prompt(
+            self.model.get_in_file_path(),
+            [file_format.value for file_format in AcceptedFileFormats])
 
         # Update the input file path to the one received from the user via the file dialog
         self.model.set_in_file_path(in_file_path)
@@ -67,8 +69,9 @@ class AnaPyzerController():
     # Function for handling when the out file "Browse..." button is pressed
     def out_file_browse_button_clicked(self):
         # Get a new file path by prompting the user with a file selection dialog
-        out_file_path = self.view.display_out_file_select_prompt(self.model.get_out_file_path(),
-                                                                 [format.value for format in OutputFileFormats])
+        out_file_path = self.view.display_out_file_select_prompt(
+            self.model.get_out_file_path(),
+            [file_format.value for file_format in OutputFileFormats])
 
         # Update the input file path to the one received from the user via the file dialog
         self.model.set_out_file_path(out_file_path)
@@ -77,13 +80,13 @@ class AnaPyzerController():
     # Function for handling when the "Open" button is pressed
     def open_file_button_clicked(self):
         # If we are in convert to CSV mode
-        if (self.model.get_file_parse_mode() == FileParseModes.CSV):
-                if (self.model.read_file_to_csv()):
+        if self.model.get_file_parse_mode() == FileParseModes.CSV:
+                if self.model.read_file_to_csv():
                     self.success_event_listener("Converted to csv successfully.")
         # Otherwise, if we are in generate graph mode
-        elif (self.model.get_file_parse_mode() == FileParseModes.GRAPH):
+        elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             # If we are in graph connections per hour mode
-            if (self.model.get_graph_mode() == GraphModes.CON_PER_HOUR):
+            if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR:
                 # self.success_event_listener(self.model.get_in_file_path())
                 connections_list = self.model.parse_w3c_to_list()
                 # self.success_event_listener("File parsed to list")
@@ -91,7 +94,7 @@ class AnaPyzerController():
                 # self.success_event_listener("Connections per hour list created!")
                 self.model.plot_connections(connections_per_hour_dict)
                 # self.success_event_listener("Finished processing connections list")
-            elif (self.model.get_graph_mode() == GraphModes.SIMUL_CON):
+            elif self.model.get_graph_mode() == GraphModes.SIMUL_CON:
                 self.view.display_graph_view()
 
     # Function for displaying an error message in the view
@@ -109,15 +112,15 @@ class AnaPyzerController():
         self.view.set_out_file_path(str(self.model.get_out_file_path()))
 
         # If we are in convert to CSV mode
-        if (self.model.get_file_parse_mode() == FileParseModes.CSV):
+        if self.model.get_file_parse_mode() == FileParseModes.CSV:
             self.view.hide_graph_mode_option_menu_widgets()
             self.view.show_out_file_path_widgets()
             self.view.disable_open_file_button()
-            if (self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid()):
+            if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
                 self.view.enable_open_file_button()
         else:
             self.view.hide_out_file_path_widgets()
             self.view.show_graph_mode_option_menu_widgets()
             self.view.disable_open_file_button()
-            if (self.model.in_file_path_is_valid()):
+            if self.model.in_file_path_is_valid():
                 self.view.enable_open_file_button()
