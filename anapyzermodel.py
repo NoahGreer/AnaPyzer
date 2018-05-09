@@ -7,20 +7,24 @@ import re
 
 import matplotlib.pyplot
 
+
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
     IIS = 'IIS (u_ex*.log)'
     DEFAULT = APACHE
 
+
 class AcceptedFileFormats(enum.Enum):
-    LOG = ('log files','*.log')
+    LOG = ('log files', '*.log')
     DEFAULT = LOG
+
 
 class FileParseModes(enum.Enum):
     GRAPH = 'Generate graph'
     CSV = 'Convert to csv'
     DEFAULT = GRAPH
+
 
 class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
@@ -28,12 +32,14 @@ class GraphModes(enum.Enum):
     SIMUL_CON = 'Simultaneous connections'
     DEFAULT = CON_PER_HOUR
 
+
 class OutputFileFormats(enum.Enum):
-    CSV = ('CSV (Comma delimited)','*.csv')
+    CSV = ('CSV (Comma delimited)', '*.csv')
     DEFAULT = CSV
 
+
 # Class definition for the file reader of the application
-class AnaPyzerModel():
+class AnaPyzerModel:
 
     # Constructor
     def __init__(self):
@@ -61,7 +67,7 @@ class AnaPyzerModel():
     # Returns a string representing the file path
     def get_in_file_path(self):
         in_file_path = str(self._in_file_path)
-        if (in_file_path == '.'):
+        if in_file_path == '.':
             in_file_path = ''
         return in_file_path
 
@@ -92,7 +98,7 @@ class AnaPyzerModel():
     # Returns a string representing the file path
     def get_out_file_path(self):
         out_file_path = str(self._out_file_path)
-        if (out_file_path == '.'):
+        if out_file_path == '.':
             out_file_path = ''
         return out_file_path
 
@@ -103,7 +109,7 @@ class AnaPyzerModel():
         out_file_path = pathlib.PurePath(self._out_file_path)
         out_file_path_parent = pathlib.Path(str(out_file_path.parent))
 
-        if (self.get_out_file_path() != '' and out_file_path_parent.is_dir()):
+        if self.get_out_file_path() != '' and out_file_path_parent.is_dir():
             is_valid = True
 
         return is_valid
@@ -161,12 +167,12 @@ class AnaPyzerModel():
     # Internal methods to call external listener methods
     # Method to call when a file IO error occurs
     def _on_error(self, error):
-        if (self._error_listener):
+        if self._error_listener:
             self._error_listener(error)
 
     # Method to call when a file was sucessfully read
     def _on_success(self, status_message):
-        if (self._success_listener):
+        if self._success_listener:
             self._success_listener(status_message)
 
     # Methods to add listener methods for the internal listener methods to call outside of this class
