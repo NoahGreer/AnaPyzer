@@ -230,6 +230,12 @@ class AnaPyzerModel():
         # return the list containing CSV data
         return log_data
 
+
+    """
+    requested parameters list can consist of the following, using the official IIS naming convention found in header
+    For information on what each tag means refer to:
+    https://stackify.com/how-to-interpret-iis-logs/
+    """
     def parse_w3c_to_list(self, requested_parameters):
         log_data = {}
         # open log file specified in file_name parameter
