@@ -5,6 +5,7 @@ from anapyzerview import *
 # Import the pathlib library for cross platform file path abstraction
 import pathlib
 
+
 # Class definition for the Controller part of the MVC design pattern
 class AnaPyzerController():
     # Constructor
@@ -86,6 +87,9 @@ class AnaPyzerController():
             if (self.model.get_graph_mode() == GraphModes.CON_PER_HOUR):
                 # self.success_event_listener(self.model.get_in_file_path())
                 connections_list = self.model.parse_w3c_to_list(['time', 'c-ip'])
+                if connections_list == None:
+                    self.view.display_error_message("Connections list unable to be parsed, please make sure file is IIS format.")
+                    return False
                 # self.success_event_listener("File parsed to list")
                 connections_per_hour_dict = self.model.get_connections_per_hour(connections_list)
                 # self.success_event_listener("Connections per hour list created!")
@@ -109,15 +113,15 @@ class AnaPyzerController():
         self.view.set_out_file_path(str(self.model.get_out_file_path()))
 
         # If we are in convert to CSV mode
-        if (self.model.get_file_parse_mode() == FileParseModes.CSV):
+        if self.model.get_file_parse_mode() == FileParseModes.CSV:
             self.view.hide_graph_mode_option_menu_widgets()
             self.view.show_out_file_path_widgets()
             self.view.disable_open_file_button()
-            if (self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid()):
+            if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
                 self.view.enable_open_file_button()
         else:
             self.view.hide_out_file_path_widgets()
             self.view.show_graph_mode_option_menu_widgets()
             self.view.disable_open_file_button()
-            if (self.model.in_file_path_is_valid()):
+            if self.model.in_file_path_is_valid():
                 self.view.enable_open_file_button()

@@ -240,6 +240,7 @@ class AnaPyzerModel():
                                 'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
                                 'cs-bytes', 'time-taken']
 
+        log_data['header'] = False
         # initialize placeholder variables in log_data array representing each of the w3c format parameters
         for parameter in potential_parameters:
             log_data[parameter] = -1
@@ -257,7 +258,7 @@ class AnaPyzerModel():
             # easy to differentiate between data and the header
             if '#' in split_line[0]:
                 log_data[str(split_line[0])] = split_line
-
+                log_data['header'] = True
                 if '#Date' in split_line[0] and log_data['date'] == -1:
                     log_data['date'] = split_line[1]
                     # print("Date of record: " + log_data['date'])
@@ -274,6 +275,9 @@ class AnaPyzerModel():
                                 log_data[parameter] = j
                                 j += 1
             else:
+                if log_data['header'] == False:
+                    return None
+
                 # initialize log_data[i] as a blank list to allow for use of append method
                 log_data[i] = []
 
@@ -307,7 +311,10 @@ class AnaPyzerModel():
     # this parsed list can be used with the plot_hourly_connections method
     def get_connections_per_hour(self, parsed_log):
         connections_per_hour_table = {}
-        # print("getting connections per hour")
+
+        if parsed_log == None:
+            return None
+
         time_place = parsed_log['time']
         cip_place = parsed_log['c-ip']
 
@@ -345,17 +352,18 @@ class AnaPyzerModel():
 
     # The plot_connections method will take in a log formatted by the above method
     def plot_connections(self, connections_log):
-        matplotlib.pyplot.figure()
-        matplotlib.pyplot.xlabel("Hour of Day")
-        matplotlib.pyplot.ylabel("Unique IPs Accessing")
-        # plt.legend(title=str(connections_log[0][0]))
-        # plot the data in a very ugly chart (figure out how to beautify)
+        if connections_log != None:
+            matplotlib.pyplot.figure()
+            matplotlib.pyplot.xlabel("Hour of Day")
+            matplotlib.pyplot.ylabel("Unique IPs Accessing")
+            # plt.legend(title=str(connections_log[0][0]))
+            # plot the data in a very ugly chart (figure out how to beautify)
 
-        matplotlib.pyplot.plot(connections_log.keys(), connections_log.values())
-        report_string = ''
+            matplotlib.pyplot.plot(connections_log.keys(), connections_log.values())
+            report_string = ''
 
-        for line in connections_log:
-            report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
+            for line in connections_log:
+                report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
 
-        # show the newly created data plot.
-        matplotlib.pyplot.show()
+            # show the newly created data plot.
+            matplotlib.pyplot.show()
