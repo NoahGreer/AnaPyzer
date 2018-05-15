@@ -10,11 +10,15 @@ import pathlib
 class AnaPyzerController:
     # Constructor
     # Takes a view and a model object
-    def __init__(self, view, model):
-        # Set the controller's reference to the application view object
-        self.view = view
+    def __init__(self, model, view):
         # Set the controller's reference to the application model object
         self.model = model
+        # Set the controller's reference to the application view object
+        self.view = view
+
+        # Register listenters in the model
+        self.model.add_error_listener(self.error_event_listener)
+        self.model.add_success_listener(self.success_event_listener)
 
         # Set the available options for the view's options menu
         self.view.set_log_type_options([log_type.value for log_type in AcceptedLogTypes])
@@ -30,10 +34,6 @@ class AnaPyzerController:
         self.view.add_log_type_option_changed_listener(self.log_type_option_changed)
         self.view.add_file_read_option_changed_listener(self.file_read_option_changed)
         self.view.add_graph_mode_option_changed_listener(self.graph_mode_option_changed)
-
-        # Register listenters in the model
-        self.model.add_error_listener(self.error_event_listener)
-        self.model.add_success_listener(self.success_event_listener)
 
     # Start the application
     def run(self):
