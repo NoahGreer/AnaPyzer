@@ -95,8 +95,9 @@ class AnaPyzerController:
                 # self.success_event_listener("File parsed to list")
                 connections_per_hour_dict = self.model.get_connections_per_hour(connections_list)
                 # self.success_event_listener("Connections per hour list created!")
-                self.model.plot_connections(connections_per_hour_dict)
-                # self.success_event_listener("Finished processing connections list")
+                self.view.display_graph_view(connections_per_hour_dict.keys(), connections_per_hour_dict.values(), "Hour of Day", "Unique IPs Accessing")
+
+            # If we are in graph simultaneous connections
             elif self.model.get_graph_mode() == GraphModes.SIMUL_CON:
                 self.view.display_graph_view()
 
