@@ -182,8 +182,15 @@ class AnaPyzerModel:
     def add_success_listener(self, listener):
         self._error_listener = listener
 
-    # this method will analyze the w3c formatted log file currently selected in the GUI
-    # and parse it out into a list containing information pertaining to client ip and time of access
+    """
+    parse_w3c_to_list will parse all information from an IIS/W3C format log into a list
+    With the locations of each field denoted in the parsed_log['parameter'] field
+    For instance, if c-ip is parsed into the 2 index of each line, requesting parsed_log['c-ip'] will return 2
+    This also works in reverse, so if you need the c-ip from each line, you request parsed_log[parsed_log['c-ip']]
+    For information on what each tag means refer to:
+    https://stackify.com/how-to-interpret-iis-logs/
+    """
+
     def parse_w3c_to_list(self):
         log_data = {}
         # open log file specified in file_name parameter
@@ -224,8 +231,9 @@ class AnaPyzerModel:
 
                             if element == parameter:
                                 log_data[parameter] = j - 1
-                            j += 1
+                        j += 1
             else:
+                print(split_line[log_data['c-ip']])
                 log_data[i] = split_line
                 i += 1
 
@@ -242,7 +250,7 @@ class AnaPyzerModel:
     For information on what each tag means refer to:
     https://stackify.com/how-to-interpret-iis-logs/
     """
-    def parse_w3c_to_list(self, requested_parameters):
+    def parse_w3c_fields_to_list(self, requested_parameters):
         log_data = {}
         # open log file specified in file_name parameter
         o_file = open(self._in_file_path, 'r')
