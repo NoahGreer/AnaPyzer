@@ -351,8 +351,8 @@ class AnaPyzerGraphView(tkinter.ttk.Frame):
         self.pack()
 
         # Create the figure
-        self._figure = matplotlib.figure.Figure()
-        self._axes = self._figure.add_axes([0, 0, 1, 1])
+        self._figure = matplotlib.figure.Figure(figsize=(6, 6), dpi=100)
+        self._axes = self._figure.add_axes([0.15, 0.15, .75, .75])
         self._canvas = FigureCanvasTkAgg(self._figure, self)
         self._canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=tkinter.TRUE)
 
