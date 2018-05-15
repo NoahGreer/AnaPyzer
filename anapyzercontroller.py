@@ -88,7 +88,10 @@ class AnaPyzerController:
             # If we are in graph connections per hour mode
             if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR:
                 # self.success_event_listener(self.model.get_in_file_path())
-                connections_list = self.model.parse_w3c_to_list()
+                connections_list = self.model.parse_w3c_to_list(['time', 'c-ip'])
+                if connections_list == None:
+                    self.view.display_error_message("Connections list unable to be parsed, please make sure file is IIS format.")
+                    return False
                 # self.success_event_listener("File parsed to list")
                 connections_per_hour_dict = self.model.get_connections_per_hour(connections_list)
                 # self.success_event_listener("Connections per hour list created!")

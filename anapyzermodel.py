@@ -188,19 +188,27 @@ class AnaPyzerModel:
         log_data = {}
         # open log file specified in file_name parameter
         o_file = open(self._in_file_path, 'r')
-        log_data['time'] = -1
-        log_data['c-ip'] = -1
-        log_data['date'] = -1
+        # o_file = open('LWTech_auth.log')
+        potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
+                                'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
+                                'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
+                                'cs-bytes', 'time-taken']
+
+        # initialize placeholder variables in log_data array representing each of the w3c format parameters
+        for parameter in potential_parameters:
+            log_data[parameter] = -1
+
         # read the current line into a string variable called line
         line = o_file.readline()[:-1]
 
         i = 0
         # as long as there are lines in the file, loop:
         while line:
-            # Split string into list of individual words
+            # Split string into list of individual words with space as delimiter
             split_line = line.split(' ')
 
-            # this will prevent any lines that are not valid data lines from being moved to the list
+            # Every header line at the top of the log will start with a #, making it
+            # easy to differentiate between data and the header
             if '#' in split_line[0]:
                 log_data[str(split_line[0])] = split_line
 
@@ -209,29 +217,15 @@ class AnaPyzerModel:
                     # print("Date of record: " + log_data['date'])
 
                 if '#Fields' in split_line[0]:
-                    # print("There is a fields line")
-
+                    # Check the fields line for all available data being logged
                     j = 0
                     for element in split_line:
+                        for parameter in potential_parameters:
 
-                        if 'c-ip' in element:
-                            log_data['c-ip'] = j - 1
-                            # print("c-ip data stored in line "+str(j))
-
-                        if element == 'time':
-                            log_data['time'] = j - 1
-                            # print("time data stored in line "+str(j))
-                        j += 1
-
+                            if element == parameter:
+                                log_data[parameter] = j - 1
+                            j += 1
             else:
-                if log_data['c-ip'] == -1:
-                    print("No user IP address information found in header")
-                    break
-                if log_data['time'] == -1:
-                    print("No time information found in header")
-                    break
-
-                # print("log_data["+str(i)+"] = "+str(split_line))
                 log_data[i] = split_line
                 i += 1
 
@@ -242,12 +236,97 @@ class AnaPyzerModel:
         # return the list containing CSV data
         return log_data
 
+
+    """
+    requested parameters list can consist of the following, using the official IIS naming convention found in header
+    For information on what each tag means refer to:
+    https://stackify.com/how-to-interpret-iis-logs/
+    """
+    def parse_w3c_to_list(self, requested_parameters):
+        log_data = {}
+        # open log file specified in file_name parameter
+        o_file = open(self._in_file_path, 'r')
+        # o_file = open('LWTech_auth.log')
+        potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
+                                'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
+                                'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
+                                'cs-bytes', 'time-taken']
+
+        log_data['header'] = False
+        # initialize placeholder variables in log_data array representing each of the w3c format parameters
+        for parameter in potential_parameters:
+            log_data[parameter] = -1
+
+        # read the current line into a string variable called line
+        line = o_file.readline()[:-1]
+
+        i = 0
+        # as long as there are lines in the file, loop:
+        while line:
+            # Split string into list of individual words with space as delimiter
+            split_line = line.split(' ')
+
+            # Every header line at the top of the log will start with a #, making it
+            # easy to differentiate between data and the header
+            if '#' in split_line[0]:
+                log_data[str(split_line[0])] = split_line
+                log_data['header'] = True
+                if '#Date' in split_line[0] and log_data['date'] == -1:
+                    log_data['date'] = split_line[1]
+                    # print("Date of record: " + log_data['date'])
+
+                if '#Fields' in split_line[0]:
+                    # Check the fields line for all available data being logged
+                    # j keeps count of the placement of each parameter in the split line
+                    j = 0
+                    for element in split_line:
+                        # iterate through list of potential parameters
+                        for parameter in potential_parameters:
+                            # mark the location of each parameter present in relation to the list to be created
+                            if element == parameter:
+                                log_data[parameter] = j
+                                j += 1
+            else:
+                if log_data['header'] == False:
+                    return None
+
+                # initialize log_data[i] as a blank list to allow for use of append method
+                log_data[i] = []
+
+                # iterate through array of requested_parameters and add the information requested to the parsed list
+                for parameter in requested_parameters:
+                    if log_data.get(parameter):
+                        log_data[i].append(split_line[log_data[parameter]])
+                    else:
+                        # print("Requested parameter "+ parameter + " not found")
+                        pass
+
+                i += 1
+            # read next line
+            line = o_file.readline()[:-1]
+
+        # once log file is parsed, assign the new positions of each requested parameter in the log_data list to
+        # prevent issues when using methods that rely on tagged element values representing element placement in array
+        k = 0
+        for parameter in requested_parameters:
+            log_data[parameter] = k
+            k += 1
+        # length represents the number of lines of DATA present in returned parsed list
+        log_data['length'] = i
+        # close the file once you're done getting all of the line information
+        o_file.close()
+        # return the list containing w3c data
+        return log_data
+
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
     # and returns a list containing how many unique ip connections were present during each hour of the day
     # this parsed list can be used with the plot_hourly_connections method
     def get_connections_per_hour(self, parsed_log):
         connections_per_hour_table = {}
-        # print("getting connections per hour")
+
+        if parsed_log == None:
+            return None
+
         time_place = parsed_log['time']
         cip_place = parsed_log['c-ip']
 
@@ -285,17 +364,18 @@ class AnaPyzerModel:
 
     # The plot_connections method will take in a log formatted by the above method
     def plot_connections(self, connections_log):
-        matplotlib.pyplot.figure()
-        matplotlib.pyplot.xlabel("Hour of Day")
-        matplotlib.pyplot.ylabel("Unique IPs Accessing")
-        # plt.legend(title=str(connections_log[0][0]))
-        # plot the data in a very ugly chart (figure out how to beautify)
+        if connections_log != None:
+            matplotlib.pyplot.figure()
+            matplotlib.pyplot.xlabel("Hour of Day")
+            matplotlib.pyplot.ylabel("Unique IPs Accessing")
+            # plt.legend(title=str(connections_log[0][0]))
+            # plot the data in a very ugly chart (figure out how to beautify)
 
-        matplotlib.pyplot.plot(connections_log.keys(), connections_log.values())
-        report_string = ''
+            matplotlib.pyplot.plot(connections_log.keys(), connections_log.values())
+            report_string = ''
 
-        for line in connections_log:
-            report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
+            for line in connections_log:
+                report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
 
-        # show the newly created data plot.
-        matplotlib.pyplot.show()
+            # show the newly created data plot.
+            matplotlib.pyplot.show()
