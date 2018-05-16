@@ -224,7 +224,7 @@ class AnaPyzerModel:
 
                             if element == parameter:
                                 log_data[parameter] = j - 1
-                            j += 1
+                        j += 1
             else:
                 log_data[i] = split_line
                 i += 1
@@ -242,7 +242,7 @@ class AnaPyzerModel:
     For information on what each tag means refer to:
     https://stackify.com/how-to-interpret-iis-logs/
     """
-    def parse_w3c_to_list(self, requested_parameters):
+    def parse_w3c_requested_to_list(self, requested_parameters):
         log_data = {}
         # open log file specified in file_name parameter
         o_file = open(self._in_file_path, 'r')
@@ -326,7 +326,7 @@ class AnaPyzerModel:
 
         if parsed_log == None:
             return None
-
+        print(parsed_log['time'])
         time_place = parsed_log['time']
         cip_place = parsed_log['c-ip']
 
