@@ -8,7 +8,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 # Import matplotlib to use it to generate graphs
 import matplotlib
-import numpy
+import matplotlib.figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
@@ -24,6 +24,8 @@ class AnaPyzerView(tkinter.ttk.Frame):
         # Call the tkinter ttk Frame base class constructor
         tkinter.ttk.Frame.__init__(self, master)
         # Set the title of the window
+        self.graph_view = AnaPyzerGraphView(self.graph_view_window)
+        self.graph_view_window = tkinter.Toplevel(self)
         self.master.title("AnaPyzer")
         self.master.resizable(width=False, height=False)
         # Give the last two columns more weight so they expand when the window expands
@@ -189,18 +191,18 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
     # Method to tell the view to display an error message
     # Takes a string for the message to be displayed
-    def display_error_message(self, message):
+    @staticmethod
+    def display_error_message(message):
         tkinter.messagebox.showerror("Error", message)
 
     # Method to tell the view to display a success message
     # Takes a string for the message to be displayed
-    def display_success_message(self, message):
+    @staticmethod
+    def display_success_message(message):
         tkinter.messagebox.showinfo("Success", message)
 
     # Method to create a new graph view from x and y plot data
     def display_graph_view(self, x_data, y_data, x_label, y_label):
-        self.graph_view_window = tkinter.Toplevel(self)
-        self.graph_view = AnaPyzerGraphView(self.graph_view_window)
         self.graph_view.configure_graph(x_data, y_data, x_label, y_label)
 
     # Method to tell the view to prompt the user to select a file
@@ -255,7 +257,8 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self.resize_entry_field(self._out_file_path_field, len(out_file_path))
         self._out_file_path.set(out_file_path)
 
-    def resize_entry_field(self, field, width):
+    @staticmethod
+    def resize_entry_field(field, width):
         if width < AnaPyzerView.DEFAULT_ENTRY_WIDTH:
             field.config(width=AnaPyzerView.DEFAULT_ENTRY_WIDTH)
         else:
