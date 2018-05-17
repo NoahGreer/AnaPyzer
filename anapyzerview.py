@@ -8,7 +8,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 # Import matplotlib to use it to generate graphs
 import matplotlib
-import numpy
+import matplotlib.figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
