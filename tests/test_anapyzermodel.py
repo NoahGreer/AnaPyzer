@@ -7,10 +7,12 @@ class TestAnaPyzerModelMethods(unittest.TestCase):
     def setUp(self):
         self.model = AnaPyzerModel()
 
+    # If a blank string is passed, then the model should just set the path to the default path
     def test_set_in_file_path_blank(self):
         self.model.set_in_file_path('')
         self.assertEqual(str(self.model.DEFAULT_FILE_PATH), self.model.get_in_file_path())
 
+    # If a file path string is passed, then the model should store that file path
     def test_set_in_file_path_string(self):
         self.model.set_in_file_path('')
         self.assertEqual(str(self.model.DEFAULT_FILE_PATH), self.model.get_in_file_path())
@@ -58,12 +60,10 @@ class TestAnaPyzerModelMethods(unittest.TestCase):
         self.assertTrue(False)
 
     def test_parse_w3c_to_list(self):
+        self.model
         self.assertTrue(False)
 
     def test_get_connections_per_hour(self):
-        self.assertTrue(False)
-
-    def test_announce_connections(self):
         self.assertTrue(False)
 
     def test_plot_connections(self):
