@@ -182,7 +182,8 @@ class AnaPyzerModel:
 
     # this method will analyze the w3c formatted log file currently selected in the GUI
     # and parse it out into a list containing information pertaining to client ip and time of access
-    def parse_w3c_to_list(self, in_file):
+    @classmethod
+    def parse_w3c_to_list(cls, in_file):
         if not in_file:
             return None
         log_data = {}
@@ -232,7 +233,8 @@ class AnaPyzerModel:
     For information on what each tag means refer to:
     https://stackify.com/how-to-interpret-iis-logs/
     """
-    def parse_w3c_requested_to_list(self, in_file, requested_parameters):
+    @classmethod
+    def parse_w3c_requested_to_list(cls, in_file, requested_parameters):
         if not in_file:
             return None
 
@@ -247,9 +249,6 @@ class AnaPyzerModel:
         # initialize placeholder variables in log_data array representing each of the w3c format parameters
         for parameter in potential_parameters:
             log_data[parameter] = -1
-
-        # read the current line into a string variable called line
-        line = in_file.readline()[:-1]
 
         i = 0
         # as long as there are lines in the file, loop:
