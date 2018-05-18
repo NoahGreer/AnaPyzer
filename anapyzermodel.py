@@ -200,6 +200,10 @@ class AnaPyzerModel:
                                 'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
                                 'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
                                 'cs-bytes', 'time-taken']
+        universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
+                           'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
+                           'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
+                           'bytes-received', 'time-taken']
 
         # initialize placeholder variables in log_data array representing each of the w3c format parameters
         for parameter in potential_parameters:
@@ -233,13 +237,23 @@ class AnaPyzerModel:
                                 log_data[parameter] = j - 1
                         j += 1
             else:
-                print(split_line[log_data['c-ip']])
+                # print(split_line[log_data['c-ip']])
                 log_data[i] = split_line
                 i += 1
 
             line = o_file.readline()[:-1]
         # close the file once you're done getting all of the line information
+        # once log file is parsed, assign the new positions of each requested parameter in the log_data list
+        # this will prevent issues when using methods that rely on tagged element values representing element placement in array
+        k = 0
+        for parameter in potential_parameters:
+            # add an index in the log_data array representing the universal name for each field
+            log_data[universal_names[k]] = log_data[parameter]
+
+            k += 1
+        # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
+        # close the file once you're done getting all of the line information
         o_file.close()
         # return the list containing CSV data
         return log_data
@@ -335,8 +349,8 @@ class AnaPyzerModel:
         if parsed_log == None:
             return None
 
-        time_place = parsed_log['time']
-        cip_place = parsed_log['c-ip']
+        time_place = parsed_log['timestamp']
+        cip_place = parsed_log['client-ip']
 
         i = 0
         while i < parsed_log['length']:
