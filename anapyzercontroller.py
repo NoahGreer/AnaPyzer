@@ -86,18 +86,44 @@ class AnaPyzerController:
         # Otherwise, if we are in generate graph mode
         elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             # If we are in graph connections per hour mode
-            if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR:
+            if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.IIS:
                 # open log file specified in the model
                 log_file = open(self.model.get_in_file_path(), 'r')
-                connections_list = self.model.parse_w3c_to_list(log_file)
+                try:
+                    connections_list = self.model.parse_w3c_to_list(log_file)
+                except:
+                    self.error_event_listener("Error encountered, did you select the correct log type?")
+                    return False
                 log_file.close()
-                if connections_list == None:
+                if connections_list is None:
                     self.view.display_error_message("Connections list unable to be parsed, please make sure file is IIS format.")
                     return False
                 # self.success_event_listener("File parsed to list")
                 connections_per_hour_dict = self.model.get_connections_per_hour(connections_list)
                 # self.success_event_listener("Connections per hour list created!")
-                self.view.display_graph_view(connections_per_hour_dict.keys(), connections_per_hour_dict.values(), "Hour of Day", "Unique IPs Accessing")
+                for date in connections_per_hour_dict:
+
+                    self.view.display_graph_view(connections_per_hour_dict[date].keys(), connections_per_hour_dict[date].values(), "Hour of Day", "Unique IPs Accessing",date)
+
+            elif self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.APACHE:
+                # self.success_event_listener(self.model.get_in_file_path())
+
+                try:
+                    connections_list = self.model.parse_common_apache_to_list()
+                except IndexError:
+                    self.error_event_listener("IndexError encountered, did you select the correct log type?")
+                    return False
+                if connections_list == None:
+                    self.view.display_error_message("Connections list unable to be parsed, please make sure file is Apache format.")
+                    return False
+                # self.success_event_listener("File parsed to list")
+                connections_per_hour_dict = self.model.get_connections_per_hour(connections_list)
+                # self.success_event_listener("Connections per hour list created!")
+
+                for date in connections_per_hour_dict:
+
+                    self.view.display_graph_view(connections_per_hour_dict[date].keys(), connections_per_hour_dict[date].values(), "Hour of Day", "Unique IPs Accessing",date)
+
 
             # If we are in graph simultaneous connections
             elif self.model.get_graph_mode() == GraphModes.SIMUL_CON:

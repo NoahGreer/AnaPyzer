@@ -180,8 +180,82 @@ class AnaPyzerModel:
     def add_success_listener(self, listener):
         self._error_listener = listener
 
-    # this method will analyze the w3c formatted log file currently selected in the GUI
-    # and parse it out into a list containing information pertaining to client ip and time of access
+    """  
+    parse_common_apache_to_list() parses an apache log that has been exported in the common, default format by an apache web server.
+    This method is in need of additional work that will make it functional with logs that have custom configurations
+    Reference for Common Log Format:
+    https://httpd.apache.org/docs/1.3/logs.html#common
+    """
+    def parse_common_apache_to_list(self, in_file):
+        if not in_file:
+            return None
+        log_data = {}
+
+        universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
+                           'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
+                           'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
+                           'bytes-received', 'time-taken']
+
+        # initialize placeholder variables in log_data array representing each of the w3c format parameters
+
+        i = 0
+        # as long as there ar
+        # Split string into list of individual words with space as delimitere lines in the file, loop:
+        for line in in_file:
+            # Use split to cut date/timestamp combined line out of data line
+            date_ts = line.split('[', 1)
+            # Use split to separate date and timestamp
+            date_ts = date_ts[1].split(":", 1)
+            # Isolate timestamp from remaining information in line
+            date_ts[1] = date_ts[1].split(' ', 1)[0]
+
+            # Create new split line for extracting other data
+            split_line = line.split(' ')
+
+            client_ip = split_line[0]
+            request_info = line.split('"', 2)[1]
+
+            method = request_info.split('/', 1)[0]
+            # if the request was a GET method, then uri-stem server-client status and bytes received data should exist
+            if "GET" in method:
+                uri_stem = request_info.split(' ')[1]
+                sc_status = split_line[8]
+                bytes_received = split_line[9]
+
+            else:
+                uri_stem = '-'
+                sc_status = '-'
+                bytes_received = '-'
+
+            client_ip = split_line[0]
+
+            data = [date_ts[0], date_ts[1], client_ip, method, uri_stem, sc_status, bytes_received]
+
+            log_data[i] = data
+
+            i += 1
+
+        # length represents the number of lines of DATA present in returned parsed list
+        log_data['length'] = i
+        log_data['date'] = 0
+        log_data['timestamp'] = 1
+        log_data['client-ip'] = 2
+        log_data['method'] = 3
+        log_data['uri-stem'] = 4
+        log_data['sc-status'] = 5
+        log_data['bytes-received'] = 6
+
+        # return the list containing data
+        return log_data
+
+    """
+    parse_w3c_to_list will parse all information from an IIS/W3C format log into a list
+    With the locations of each field denoted in the parsed_log['parameter'] field
+    For instance, if c-ip is parsed into the 2 index of each line, requesting parsed_log['c-ip'] will return 2
+    This also works in reverse, so if you need the c-ip from each line, you request parsed_log[parsed_log['c-ip']]
+    For information on what each tag means refer to:
+    https://stackify.com/how-to-interpret-iis-logs/
+    """
     @classmethod
     def parse_w3c_to_list(cls, in_file):
         if not in_file:
@@ -191,7 +265,12 @@ class AnaPyzerModel:
                                 'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
                                 'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
                                 'cs-bytes', 'time-taken']
+        universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
+                           'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
+                           'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
+                           'bytes-received', 'time-taken']
 
+        log_data['fields'] = -1
         # initialize placeholder variables in log_data array representing each of the w3c format parameters
         for parameter in potential_parameters:
             log_data[parameter] = -1
@@ -213,6 +292,7 @@ class AnaPyzerModel:
 
                 if '#Fields' in split_line[0]:
                     # Check the fields line for all available data being logged
+                    log_data['fields'] = 1
                     j = 0
                     for element in split_line:
                         for parameter in potential_parameters:
@@ -221,9 +301,21 @@ class AnaPyzerModel:
                                 log_data[parameter] = j - 1
                         j += 1
             else:
+                if log_data['fields'] == -1:
+                    return None
+                # print(split_line[log_data['c-ip']])
                 log_data[i] = split_line
                 i += 1
-        # Store the length of the log data
+        # close the file once you're done getting all of the line information
+        # once log file is parsed, assign the new positions of each requested parameter in the log_data list
+        # this will prevent issues when using methods that rely on tagged element values representing element placement in array
+        k = 0
+        for parameter in potential_parameters:
+            # add an index in the log_data array representing the universal name for each field
+            log_data[universal_names[k]] = log_data[parameter]
+
+            k += 1
+        # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
         # return the list containing CSV data
         return log_data
@@ -313,31 +405,39 @@ class AnaPyzerModel:
 
         if parsed_log is None:
             return None
-        print(parsed_log['time'])
-        time_place = parsed_log['time']
-        cip_place = parsed_log['c-ip']
+
+        time_place = parsed_log['timestamp']
+        cip_place = parsed_log['client-ip']
+
 
         i = 0
+        date = parsed_log[i][parsed_log['date']]
+        connections_per_hour_table[date] = {}
         while i < parsed_log['length']:
             # iterate through the ip addresses recorded
-            time_string = parsed_log[i][time_place]
-            user_ip_address = parsed_log[i][cip_place]
+            if parsed_log[i][parsed_log['date']] != date:
+                date = parsed_log[i][parsed_log['date']]
+                connections_per_hour_table[date] = {}
 
-            time_string = str(time_string)
-            user_ip_address = str(user_ip_address)
+            time_string = str(parsed_log[i][parsed_log['timestamp']])
+            user_ip_address = str(parsed_log[i][parsed_log['client-ip']])
+
+            # time_string = str(time_string)
+            # user_ip_address = str(user_ip_address)
             # print("Time string = " + time_string)
             # print("IP address = "+ user_ip_address)
             hours = time_string[:2]
 
-            i += 1
-            if connections_per_hour_table.get(hours):
-                connections_per_hour_table[hours] += [user_ip_address]
+            if connections_per_hour_table[date].get(hours):
+                connections_per_hour_table[date][hours] += [user_ip_address]
             else:
-                connections_per_hour_table[hours] = [user_ip_address]
+                connections_per_hour_table[date][hours] = [user_ip_address]
+            i += 1
 
-        for time in connections_per_hour_table:
-            ip_count = len(set(connections_per_hour_table[time]))
-            connections_per_hour_table[time] = ip_count
+        for date in connections_per_hour_table:
+            for time in connections_per_hour_table[date]:
+                ip_count = len(set(connections_per_hour_table[date][time]))
+                connections_per_hour_table[date][time] = ip_count
 
         # print("connections per hour report complete")
         # for time in connections_per_hour_table:
