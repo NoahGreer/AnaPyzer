@@ -5,9 +5,6 @@ import pathlib
 # Import the re library to support regular expressions
 import re
 
-import matplotlib.pyplot
-
-
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
@@ -170,7 +167,7 @@ class AnaPyzerModel:
         if self._error_listener:
             self._error_listener(error)
 
-    # Method to call when a file was sucessfully read
+    # Method to call when a file was successfully read
     def _on_success(self, status_message):
         if self._success_listener:
             self._success_listener(status_message)
@@ -383,21 +380,3 @@ class AnaPyzerModel:
     def announce_connections(self, connections_log):
         for log in connections_log:
             print(str(connections_log[log]) + " unique connections found at " + log + ":00")
-
-    # The plot_connections method will take in a log formatted by the above method
-    def plot_connections(self, connections_log):
-        if connections_log != None:
-            matplotlib.pyplot.figure()
-            matplotlib.pyplot.xlabel("Hour of Day")
-            matplotlib.pyplot.ylabel("Unique IPs Accessing")
-            # plt.legend(title=str(connections_log[0][0]))
-            # plot the data in a very ugly chart (figure out how to beautify)
-
-            matplotlib.pyplot.plot(connections_log.keys(), connections_log.values())
-            report_string = ''
-
-            for line in connections_log:
-                report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
-
-            # show the newly created data plot.
-            matplotlib.pyplot.show()

@@ -10,11 +10,15 @@ import pathlib
 class AnaPyzerController:
     # Constructor
     # Takes a view and a model object
-    def __init__(self, view, model):
-        # Set the controller's reference to the application view object
-        self.view = view
+    def __init__(self, model, view):
         # Set the controller's reference to the application model object
         self.model = model
+        # Set the controller's reference to the application view object
+        self.view = view
+
+        # Register listenters in the model
+        self.model.add_error_listener(self.error_event_listener)
+        self.model.add_success_listener(self.success_event_listener)
 
         # Set the available options for the view's options menu
         self.view.set_log_type_options([log_type.value for log_type in AcceptedLogTypes])
@@ -30,10 +34,6 @@ class AnaPyzerController:
         self.view.add_log_type_option_changed_listener(self.log_type_option_changed)
         self.view.add_file_read_option_changed_listener(self.file_read_option_changed)
         self.view.add_graph_mode_option_changed_listener(self.graph_mode_option_changed)
-
-        # Register listenters in the model
-        self.model.add_error_listener(self.error_event_listener)
-        self.model.add_success_listener(self.success_event_listener)
 
     # Start the application
     def run(self):
@@ -95,8 +95,9 @@ class AnaPyzerController:
                 # self.success_event_listener("File parsed to list")
                 connections_per_hour_dict = self.model.get_connections_per_hour(connections_list)
                 # self.success_event_listener("Connections per hour list created!")
-                self.model.plot_connections(connections_per_hour_dict)
-                # self.success_event_listener("Finished processing connections list")
+                self.view.display_graph_view(connections_per_hour_dict.keys(), connections_per_hour_dict.values(), "Hour of Day", "Unique IPs Accessing")
+
+            # If we are in graph simultaneous connections
             elif self.model.get_graph_mode() == GraphModes.SIMUL_CON:
                 self.view.display_graph_view()
 
