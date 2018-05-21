@@ -84,7 +84,7 @@ class AnaPyzerController:
                 if self.model.read_file_to_csv():
                     self.success_event_listener("Converted to csv successfully.")
         # Otherwise, if we are in generate graph mode
-        elif self.model.get_file_parse_mode() == FileParseModes.GRAPH :
+        elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             # If we are in graph connections per hour mode
             if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.IIS:
                 try:
