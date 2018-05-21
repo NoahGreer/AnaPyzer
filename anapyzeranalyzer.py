@@ -6,20 +6,42 @@ class analyzer(object):
     def __init__(self, in_file_path):
         self.in_file_path = in_file_path
 
-    def is_malicious(self, timestamps):
-        timestamps.sort()
+    def is_malicious(self, timestamps, urls):
         malicious = False
+        attempts = 0
         counter = 0
-        current = 0
+        current_timestamp = 0
+        current_url = 1
         for timestamp in timestamps:
-            if (int(timestamp) - int(timestamps[current])) < 11:   #goes forward lookin for timestamps within ten seconds of current
+            temp = ""
+            for c in timestamp:
+                if (c.isdigit()):
+                    temp += c
+            timestamps[timestamps.index(timestamp)] = temp
+        timestamps.sort()
+        urls.sort()
+        for url in urls:
+            try:
+                if (url == urls[current_url]):
+                    malicious = True
+                    attempts += 1
+                    current_url += 1
+                else:
+                    current_url += 1
+            except IndexError:
+                break
+        if (attempts > 0):
+            attempts += 1
+        for timestamp in timestamps:
+            if (int(timestamp) - int(timestamps[
+                                         current_timestamp])) < 11:  # goes forward lookin for timestamps within ten seconds of current
                 counter += 1
             else:
-                current = timestamps.index(timestamp)
+                current_timestamp = timestamps.index(timestamp)
                 counter = 0
                 for i in range(1, 10):
                     try:
-                        if (int(timestamps[current]) - int(timestamps[current - i])) < 11:
+                        if (int(timestamps[current_timestamp]) - int(timestamps[current_timestamp - i])) < 11:
                             counter += 1
                     except IndexError:
                         break
