@@ -100,7 +100,7 @@ class AnaPyzerController:
                 # self.success_event_listener("Connections per hour list created!")
                 for date in connections_per_hour_dict:
 
-                    self.view.display_graph_view(connections_per_hour_dict[date].keys(), connections_per_hour_dict[date].values(), "Hour of Day", "Unique IPs Accessing")
+                    self.view.display_graph_view(connections_per_hour_dict[date].keys(), connections_per_hour_dict[date].values(), "Hour of Day", "Unique IPs Accessing",date)
 
             elif self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.APACHE:
                 # self.success_event_listener(self.model.get_in_file_path())
@@ -118,7 +118,7 @@ class AnaPyzerController:
                 # self.success_event_listener("Connections per hour list created!")
                 for date in connections_per_hour_dict:
 
-                    self.view.display_graph_view(connections_per_hour_dict[date].keys(), connections_per_hour_dict[date].values(), "Hour of Day", "Unique IPs Accessing")
+                    self.view.display_graph_view(connections_per_hour_dict[date].keys(), connections_per_hour_dict[date].values(), "Hour of Day", "Unique IPs Accessing",date)
 
             # If we are in graph simultaneous connections
             elif self.model.get_graph_mode() == GraphModes.SIMUL_CON:
