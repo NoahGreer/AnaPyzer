@@ -5,6 +5,7 @@ import pathlib
 # Import the re library to support regular expressions
 import re
 
+
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
@@ -344,13 +345,13 @@ class AnaPyzerModel:
         # return the list containing CSV data
         return log_data
 
-
     """
     requested parameters list can consist of the following, using the official IIS naming convention found in header
     For information on what each tag means refer to:
     https://stackify.com/how-to-interpret-iis-logs/
     """
     def parse_w3c_fields_to_list(self, requested_parameters):
+
         log_data = {}
         # open log file specified in file_name parameter
         o_file = open(self._in_file_path, 'r')
@@ -395,7 +396,7 @@ class AnaPyzerModel:
                                 log_data[parameter] = j
                                 j += 1
             else:
-                if log_data['header'] == False:
+                if not log_data['header']:
                     return None
 
                 # initialize log_data[i] as a blank list to allow for use of append method
@@ -429,14 +430,16 @@ class AnaPyzerModel:
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
     # and returns a list containing how many unique ip connections were present during each hour of the day
     # this parsed list can be used with the plot_hourly_connections method
-    def get_connections_per_hour(self, parsed_log):
+    @staticmethod
+    def get_connections_per_hour(parsed_log):
         connections_per_hour_table = {}
 
-        if parsed_log == None:
+        if parsed_log is None:
             return None
 
         time_place = parsed_log['timestamp']
         cip_place = parsed_log['client-ip']
+
 
         i = 0
         date = parsed_log[i][parsed_log['date']]
@@ -473,6 +476,7 @@ class AnaPyzerModel:
         return connections_per_hour_table
 
     # The plot_connections method take a log formatted by the get_connections_per_hour method
-    def announce_connections(self, connections_log):
+    @staticmethod
+    def announce_connections(connections_log):
         for log in connections_log:
             print(str(connections_log[log]) + " unique connections found at " + log + ":00")

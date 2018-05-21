@@ -111,14 +111,16 @@ class AnaPyzerController:
                     self.error_event_listener("IndexError encountered, did you select the correct log type?")
                     return False
                 if connections_list == None:
-                    self.view.display_error_message("Connections list unable to be parsed, please make sure file is IIS format.")
+                    self.view.display_error_message("Connections list unable to be parsed, please make sure file is Apache format.")
                     return False
                 # self.success_event_listener("File parsed to list")
                 connections_per_hour_dict = self.model.get_connections_per_hour(connections_list)
                 # self.success_event_listener("Connections per hour list created!")
+
                 for date in connections_per_hour_dict:
 
                     self.view.display_graph_view(connections_per_hour_dict[date].keys(), connections_per_hour_dict[date].values(), "Hour of Day", "Unique IPs Accessing",date)
+
 
             # If we are in graph simultaneous connections
             elif self.model.get_graph_mode() == GraphModes.SIMUL_CON:
