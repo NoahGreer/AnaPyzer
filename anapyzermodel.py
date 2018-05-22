@@ -5,7 +5,6 @@ import pathlib
 # Import the re library to support regular expressions
 import re
 
-import matplotlib.pyplot
 
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
@@ -13,14 +12,17 @@ class AcceptedLogTypes(enum.Enum):
     IIS = 'IIS (u_ex*.log)'
     DEFAULT = APACHE
 
+
 class AcceptedFileFormats(enum.Enum):
-    LOG = ('log files','*.log')
+    LOG = ('log files', '*.log')
     DEFAULT = LOG
+
 
 class FileParseModes(enum.Enum):
     GRAPH = 'Generate graph'
     CSV = 'Convert to csv'
     DEFAULT = GRAPH
+
 
 class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
@@ -28,12 +30,14 @@ class GraphModes(enum.Enum):
     SIMUL_CON = 'Simultaneous connections'
     DEFAULT = CON_PER_HOUR
 
+
 class OutputFileFormats(enum.Enum):
-    CSV = ('CSV (Comma delimited)','*.csv')
+    CSV = ('CSV (Comma delimited)', '*.csv')
     DEFAULT = CSV
 
+
 # Class definition for the file reader of the application
-class AnaPyzerModel():
+class AnaPyzerModel:
 
     # Constructor
     def __init__(self):
@@ -61,7 +65,7 @@ class AnaPyzerModel():
     # Returns a string representing the file path
     def get_in_file_path(self):
         in_file_path = str(self._in_file_path)
-        if (in_file_path == '.'):
+        if in_file_path == '.':
             in_file_path = ''
         return in_file_path
 
@@ -92,7 +96,7 @@ class AnaPyzerModel():
     # Returns a string representing the file path
     def get_out_file_path(self):
         out_file_path = str(self._out_file_path)
-        if (out_file_path == '.'):
+        if out_file_path == '.':
             out_file_path = ''
         return out_file_path
 
@@ -103,7 +107,7 @@ class AnaPyzerModel():
         out_file_path = pathlib.PurePath(self._out_file_path)
         out_file_path_parent = pathlib.Path(str(out_file_path.parent))
 
-        if (self.get_out_file_path() != '' and out_file_path_parent.is_dir()):
+        if self.get_out_file_path() != '' and out_file_path_parent.is_dir():
             is_valid = True
 
         return is_valid
@@ -161,12 +165,12 @@ class AnaPyzerModel():
     # Internal methods to call external listener methods
     # Method to call when a file IO error occurs
     def _on_error(self, error):
-        if (self._error_listener):
+        if self._error_listener:
             self._error_listener(error)
 
-    # Method to call when a file was sucessfully read
+    # Method to call when a file was successfully read
     def _on_success(self, status_message):
-        if (self._success_listener):
+        if self._success_listener:
             self._success_listener(status_message)
 
     # Methods to add listener methods for the internal listener methods to call outside of this class
@@ -176,25 +180,109 @@ class AnaPyzerModel():
     def add_success_listener(self, listener):
         self._error_listener = listener
 
-    # this method will analyze the w3c formatted log file currently selected in the GUI
-    # and parse it out into a list containing information pertaining to client ip and time of access
-    def parse_w3c_to_list(self):
+    """  
+    parse_common_apache_to_list() parses an apache log that has been exported in the common, default format by an apache web server.
+    This method is in need of additional work that will make it functional with logs that have custom configurations
+    Reference for Common Log Format:
+    https://httpd.apache.org/docs/1.3/logs.html#common
+    """
+    def parse_common_apache_to_list(self, in_file):
+        if not in_file:
+            return None
         log_data = {}
-        # open log file specified in file_name parameter
-        o_file = open(self._in_file_path, 'r')
-        log_data['time'] = -1
-        log_data['c-ip'] = -1
-        log_data['date'] = -1
-        # read the current line into a string variable called line
-        line = o_file.readline()[:-1]
+
+        universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
+                           'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
+                           'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
+                           'bytes-received', 'time-taken']
+
+        # initialize placeholder variables in log_data array representing each of the w3c format parameters
+
+        i = 0
+        # as long as there ar
+        # Split string into list of individual words with space as delimitere lines in the file, loop:
+        for line in in_file:
+            # Use split to cut date/timestamp combined line out of data line
+            date_ts = line.split('[', 1)
+            # Use split to separate date and timestamp
+            date_ts = date_ts[1].split(":", 1)
+            # Isolate timestamp from remaining information in line
+            date_ts[1] = date_ts[1].split(' ', 1)[0]
+
+            # Create new split line for extracting other data
+            split_line = line.split(' ')
+
+            client_ip = split_line[0]
+            request_info = line.split('"', 2)[1]
+
+            method = request_info.split('/', 1)[0]
+            # if the request was a GET method, then uri-stem server-client status and bytes received data should exist
+            if "GET" in method:
+                uri_stem = request_info.split(' ')[1]
+                sc_status = split_line[8]
+                bytes_received = split_line[9]
+
+            else:
+                uri_stem = '-'
+                sc_status = '-'
+                bytes_received = '-'
+
+            client_ip = split_line[0]
+
+            data = [date_ts[0], date_ts[1], client_ip, method, uri_stem, sc_status, bytes_received]
+
+            log_data[i] = data
+
+            i += 1
+
+        # length represents the number of lines of DATA present in returned parsed list
+        log_data['length'] = i
+        log_data['date'] = 0
+        log_data['timestamp'] = 1
+        log_data['client-ip'] = 2
+        log_data['method'] = 3
+        log_data['uri-stem'] = 4
+        log_data['sc-status'] = 5
+        log_data['bytes-received'] = 6
+
+        # return the list containing data
+        return log_data
+
+    """
+    parse_w3c_to_list will parse all information from an IIS/W3C format log into a list
+    With the locations of each field denoted in the parsed_log['parameter'] field
+    For instance, if c-ip is parsed into the 2 index of each line, requesting parsed_log['c-ip'] will return 2
+    This also works in reverse, so if you need the c-ip from each line, you request parsed_log[parsed_log['c-ip']]
+    For information on what each tag means refer to:
+    https://stackify.com/how-to-interpret-iis-logs/
+    """
+    @classmethod
+    def parse_w3c_to_list(cls, in_file):
+        if not in_file:
+            return None
+        log_data = {}
+        potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
+                                'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
+                                'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
+                                'cs-bytes', 'time-taken']
+        universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
+                           'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
+                           'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
+                           'bytes-received', 'time-taken']
+
+        log_data['fields'] = -1
+        # initialize placeholder variables in log_data array representing each of the w3c format parameters
+        for parameter in potential_parameters:
+            log_data[parameter] = -1
 
         i = 0
         # as long as there are lines in the file, loop:
-        while line:
-            # Split string into list of individual words
+        for line in in_file:
+            # Split string into list of individual words with space as delimiter
             split_line = line.split(' ')
 
-            # this will prevent any lines that are not valid data lines from being moved to the list
+            # Every header line at the top of the log will start with a #, making it
+            # easy to differentiate between data and the header
             if '#' in split_line[0]:
                 log_data[str(split_line[0])] = split_line
 
@@ -203,69 +291,153 @@ class AnaPyzerModel():
                     # print("Date of record: " + log_data['date'])
 
                 if '#Fields' in split_line[0]:
-                    # print("There is a fields line")
-
+                    # Check the fields line for all available data being logged
+                    log_data['fields'] = 1
                     j = 0
                     for element in split_line:
+                        for parameter in potential_parameters:
 
-                        if 'c-ip' in element:
-                            log_data['c-ip'] = j - 1
-                            # print("c-ip data stored in line "+str(j))
-
-                        if element == 'time':
-                            log_data['time'] = j - 1
-                            # print("time data stored in line "+str(j))
+                            if element == parameter:
+                                log_data[parameter] = j - 1
                         j += 1
-
             else:
-                if log_data['c-ip'] == -1:
-                    print("No user IP address information found in header")
-                    break
-                if log_data['time'] == -1:
-                    print("No time information found in header")
-                    break
-
-                # print("log_data["+str(i)+"] = "+str(split_line))
+                if log_data['fields'] == -1:
+                    return None
+                # print(split_line[log_data['c-ip']])
                 log_data[i] = split_line
                 i += 1
-
-            line = o_file.readline()[:-1]
         # close the file once you're done getting all of the line information
+        # once log file is parsed, assign the new positions of each requested parameter in the log_data list
+        # this will prevent issues when using methods that rely on tagged element values representing element placement in array
+        k = 0
+        for parameter in potential_parameters:
+            # add an index in the log_data array representing the universal name for each field
+            log_data[universal_names[k]] = log_data[parameter]
+
+            k += 1
+        # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
-        o_file.close()
         # return the list containing CSV data
+        return log_data
+
+    """
+    requested parameters list can consist of the following, using the official IIS naming convention found in header
+    For information on what each tag means refer to:
+    https://stackify.com/how-to-interpret-iis-logs/
+    """
+    @classmethod
+    def parse_w3c_requested_to_list(cls, in_file, requested_parameters):
+        if not in_file:
+            return None
+
+        log_data = {}
+        # in_file = open('LWTech_auth.log')
+        potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
+                                'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
+                                'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
+                                'cs-bytes', 'time-taken']
+
+        log_data['header'] = False
+        # initialize placeholder variables in log_data array representing each of the w3c format parameters
+        for parameter in potential_parameters:
+            log_data[parameter] = -1
+
+        i = 0
+        # as long as there are lines in the file, loop:
+        for line in in_file:
+            # Split string into list of individual words with space as delimiter
+            split_line = line.split(' ')
+
+            # Every header line at the top of the log will start with a #, making it
+            # easy to differentiate between data and the header
+            if '#' in split_line[0]:
+                log_data[str(split_line[0])] = split_line
+                log_data['header'] = True
+                if '#Date' in split_line[0] and log_data['date'] == -1:
+                    log_data['date'] = split_line[1]
+                    # print("Date of record: " + log_data['date'])
+
+                if '#Fields' in split_line[0]:
+                    # Check the fields line for all available data being logged
+                    # j keeps count of the placement of each parameter in the split line
+                    j = 0
+                    for element in split_line:
+                        # iterate through list of potential parameters
+                        for parameter in potential_parameters:
+                            # mark the location of each parameter present in relation to the list to be created
+                            if element == parameter:
+                                log_data[parameter] = j
+                                j += 1
+            else:
+                if not log_data['header']:
+                    return None
+
+                # initialize log_data[i] as a blank list to allow for use of append method
+                log_data[i] = []
+
+                # iterate through array of requested_parameters and add the information requested to the parsed list
+                for parameter in requested_parameters:
+                    if log_data.get(parameter):
+                        log_data[i].append(split_line[log_data[parameter]])
+                    else:
+                        # print("Requested parameter "+ parameter + " not found")
+                        pass
+
+                i += 1
+
+        # once log file is parsed, assign the new positions of each requested parameter in the log_data list to
+        # prevent issues when using methods that rely on tagged element values representing element placement in array
+        k = 0
+        for parameter in requested_parameters:
+            log_data[parameter] = k
+            k += 1
+        # length represents the number of lines of DATA present in returned parsed list
+        log_data['length'] = i
+        # return the list containing w3c data
         return log_data
 
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
     # and returns a list containing how many unique ip connections were present during each hour of the day
     # this parsed list can be used with the plot_hourly_connections method
-    def get_connections_per_hour(self, parsed_log):
+    @staticmethod
+    def get_connections_per_hour(parsed_log):
         connections_per_hour_table = {}
-        # print("getting connections per hour")
-        time_place = parsed_log['time']
-        cip_place = parsed_log['c-ip']
+
+        if parsed_log is None:
+            return None
+
+        time_place = parsed_log['timestamp']
+        cip_place = parsed_log['client-ip']
+
 
         i = 0
+        date = parsed_log[i][parsed_log['date']]
+        connections_per_hour_table[date] = {}
         while i < parsed_log['length']:
             # iterate through the ip addresses recorded
-            time_string = parsed_log[i][time_place]
-            user_ip_address = parsed_log[i][cip_place]
+            if parsed_log[i][parsed_log['date']] != date:
+                date = parsed_log[i][parsed_log['date']]
+                connections_per_hour_table[date] = {}
 
-            time_string = str(time_string)
-            user_ip_address = str(user_ip_address)
+            time_string = str(parsed_log[i][parsed_log['timestamp']])
+            user_ip_address = str(parsed_log[i][parsed_log['client-ip']])
+
+            # time_string = str(time_string)
+            # user_ip_address = str(user_ip_address)
             # print("Time string = " + time_string)
             # print("IP address = "+ user_ip_address)
             hours = time_string[:2]
 
-            i += 1
-            if connections_per_hour_table.get(hours):
-                connections_per_hour_table[hours] += [user_ip_address]
+            if connections_per_hour_table[date].get(hours):
+                connections_per_hour_table[date][hours] += [user_ip_address]
             else:
-                connections_per_hour_table[hours] = [user_ip_address]
+                connections_per_hour_table[date][hours] = [user_ip_address]
+            i += 1
 
-        for time in connections_per_hour_table:
-            ip_count = len(set(connections_per_hour_table[time]))
-            connections_per_hour_table[time] = ip_count
+        for date in connections_per_hour_table:
+            for time in connections_per_hour_table[date]:
+                ip_count = len(set(connections_per_hour_table[date][time]))
+                connections_per_hour_table[date][time] = ip_count
 
         # print("connections per hour report complete")
         # for time in connections_per_hour_table:
@@ -273,23 +445,7 @@ class AnaPyzerModel():
         return connections_per_hour_table
 
     # The plot_connections method take a log formatted by the get_connections_per_hour method
-    def announce_connections(self, connections_log):
+    @staticmethod
+    def announce_connections(connections_log):
         for log in connections_log:
             print(str(connections_log[log]) + " unique connections found at " + log + ":00")
-
-    # The plot_connections method will take in a log formatted by the above method
-    def plot_connections(self, connections_log):
-        matplotlib.pyplot.figure()
-        matplotlib.pyplot.xlabel("Hour of Day")
-        matplotlib.pyplot.ylabel("Unique IPs Accessing")
-        # plt.legend(title=str(connections_log[0][0]))
-        # plot the data in a very ugly chart (figure out how to beautify)
-
-        matplotlib.pyplot.plot(connections_log.keys(), connections_log.values())
-        report_string = ''
-
-        for line in connections_log:
-            report_string += str(connections_log[line]) + " unique connections at " + line + ":00 \n"
-
-        # show the newly created data plot.
-        matplotlib.pyplot.show()
