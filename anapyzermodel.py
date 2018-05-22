@@ -185,14 +185,11 @@ class AnaPyzerModel:
     This method is in need of additional work that will make it functional with logs that have custom configurations
     Reference for Common Log Format:
     https://httpd.apache.org/docs/1.3/logs.html#common
-
     """
-
-    def parse_common_apache_to_list(self):
+    def parse_common_apache_to_list(self, in_file):
+        if not in_file:
+            return None
         log_data = {}
-        # open log file specified in file_name parameter
-        o_file = open(self._in_file_path, 'r')
-        # o_file = open('LWTech_auth.log')
 
         universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
                            'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
@@ -201,13 +198,10 @@ class AnaPyzerModel:
 
         # initialize placeholder variables in log_data array representing each of the w3c format parameters
 
-        # read the current line into a string variable called line
-        line = o_file.readline()[:-1]
-
         i = 0
         # as long as there ar
         # Split string into list of individual words with space as delimitere lines in the file, loop:
-        while line:
+        for line in in_file:
             # Use split to cut date/timestamp combined line out of data line
             date_ts = line.split('[', 1)
             # Use split to separate date and timestamp
@@ -239,13 +233,7 @@ class AnaPyzerModel:
 
             log_data[i] = data
 
-            # log_data[i] = split_line
-            # split_line = line.split(' ')
-            # log_data[i] = split_line
             i += 1
-
-            line = o_file.readline()[:-1]
-        # close the file once you're done getting all of the line information
 
         # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
@@ -257,11 +245,6 @@ class AnaPyzerModel:
         log_data['sc-status'] = 5
         log_data['bytes-received'] = 6
 
-        # log_data['date'] = 6
-        # log_data['time-stamp'] = 7
-
-        # close the file once you're done getting all of the line information
-        o_file.close()
         # return the list containing data
         return log_data
 
@@ -273,12 +256,11 @@ class AnaPyzerModel:
     For information on what each tag means refer to:
     https://stackify.com/how-to-interpret-iis-logs/
     """
-
-    def parse_w3c_to_list(self):
+    @classmethod
+    def parse_w3c_to_list(cls, in_file):
+        if not in_file:
+            return None
         log_data = {}
-        # open log file specified in file_name parameter
-        o_file = open(self._in_file_path, 'r')
-        # o_file = open('LWTech_auth.log')
         potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
                                 'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
                                 'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
@@ -293,12 +275,9 @@ class AnaPyzerModel:
         for parameter in potential_parameters:
             log_data[parameter] = -1
 
-        # read the current line into a string variable called line
-        line = o_file.readline()[:-1]
-
         i = 0
         # as long as there are lines in the file, loop:
-        while line:
+        for line in in_file:
             # Split string into list of individual words with space as delimiter
             split_line = line.split(' ')
 
@@ -327,8 +306,6 @@ class AnaPyzerModel:
                 # print(split_line[log_data['c-ip']])
                 log_data[i] = split_line
                 i += 1
-
-            line = o_file.readline()[:-1]
         # close the file once you're done getting all of the line information
         # once log file is parsed, assign the new positions of each requested parameter in the log_data list
         # this will prevent issues when using methods that rely on tagged element values representing element placement in array
@@ -340,8 +317,6 @@ class AnaPyzerModel:
             k += 1
         # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
-        # close the file once you're done getting all of the line information
-        o_file.close()
         # return the list containing CSV data
         return log_data
 
@@ -350,12 +325,13 @@ class AnaPyzerModel:
     For information on what each tag means refer to:
     https://stackify.com/how-to-interpret-iis-logs/
     """
-    def parse_w3c_fields_to_list(self, requested_parameters):
+    @classmethod
+    def parse_w3c_requested_to_list(cls, in_file, requested_parameters):
+        if not in_file:
+            return None
 
         log_data = {}
-        # open log file specified in file_name parameter
-        o_file = open(self._in_file_path, 'r')
-        # o_file = open('LWTech_auth.log')
+        # in_file = open('LWTech_auth.log')
         potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
                                 'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
                                 'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
@@ -366,12 +342,9 @@ class AnaPyzerModel:
         for parameter in potential_parameters:
             log_data[parameter] = -1
 
-        # read the current line into a string variable called line
-        line = o_file.readline()[:-1]
-
         i = 0
         # as long as there are lines in the file, loop:
-        while line:
+        for line in in_file:
             # Split string into list of individual words with space as delimiter
             split_line = line.split(' ')
 
@@ -411,8 +384,6 @@ class AnaPyzerModel:
                         pass
 
                 i += 1
-            # read next line
-            line = o_file.readline()[:-1]
 
         # once log file is parsed, assign the new positions of each requested parameter in the log_data list to
         # prevent issues when using methods that rely on tagged element values representing element placement in array
@@ -422,8 +393,6 @@ class AnaPyzerModel:
             k += 1
         # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
-        # close the file once you're done getting all of the line information
-        o_file.close()
         # return the list containing w3c data
         return log_data
 

@@ -87,12 +87,15 @@ class AnaPyzerController:
         elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             # If we are in graph connections per hour mode
             if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.IIS:
+                # open log file specified in the model
+                log_file = open(self.model.get_in_file_path(), 'r')
                 try:
-                    connections_list = self.model.parse_w3c_to_list()
+                    connections_list = self.model.parse_w3c_to_list(log_file)
                 except:
                     self.error_event_listener("Error encountered, did you select the correct log type?")
                     return False
-                if connections_list == None:
+                log_file.close()
+                if connections_list is None:
                     self.view.display_error_message("Connections list unable to be parsed, please make sure file is IIS format.")
                     return False
                 # self.success_event_listener("File parsed to list")
