@@ -200,12 +200,10 @@ class AnaPyzerView(tkinter.ttk.Frame):
         tkinter.messagebox.showinfo("Success", message)
 
     # Method to create a new graph view from x and y plot data
-
     def display_graph_view(self, x_data, y_data, x_label, y_label, title):
         self.graph_view_window = tkinter.Toplevel(self)
         self.graph_view = AnaPyzerGraphView(self.graph_view_window)
         self.graph_view.configure_graph(x_data, y_data, x_label, y_label, title)
-
 
     # Method to tell the view to prompt the user to select a file
     # Takes a string for the starting directory,
