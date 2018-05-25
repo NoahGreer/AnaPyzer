@@ -59,15 +59,16 @@ class AnaPyzerAnalyzer:
 
     def parse_apache(self):
         try:
-            self.file = open(self.in_file_path, 'r')
+            self.in_file = open(self.in_file_path, 'r')
         except:
+            # TODO change this to a GUI message window
             print('Could not open file ' + self.in_file_path)
 
         regex_IP_pattern = r'^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
         # retrieved from https://stackoverflow.com/questions/30956820/log-parsing-with-regex
         parsed_log = {}
 
-        for line in self.file:
+        for line in self.in_file:
             matchObj = re.match(regex_IP_pattern, line, flags=0)
                                                          # Creates a dictionary with the IP address as the key, and a list of lists
             if matchObj:  # Group 1 is ip address       #pertaing to the 8 other groups as the value
@@ -84,7 +85,7 @@ class AnaPyzerAnalyzer:
                     parsed_log[matchObj.group(1)] = [[matchObj.group(2)], [matchObj.group(3)], [matchObj.group(4)],
                                                      [matchObj.group(5)], [matchObj.group(6)], [], [matchObj.group(7)],
                                                      [matchObj.group(8)], [matchObj.group(9)]]
-        self.file.close()
+        self.in_file.close()
         return parsed_log
 
 

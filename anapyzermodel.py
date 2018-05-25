@@ -21,7 +21,6 @@ class AcceptedFileFormats(enum.Enum):
 class FileParseModes(enum.Enum):
     GRAPH = 'Generate graph'
     CSV = 'Convert to csv'
-    REPORT = "Generate Report"
     DEFAULT = GRAPH
 
 
