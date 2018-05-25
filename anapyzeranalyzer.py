@@ -1,10 +1,17 @@
 # Import the re library to support regular expressions
 import re
+import pathlib
 
-
-class analyzer(object):
-    def __init__(self, in_file_path):
-        self.in_file_path = in_file_path
+"""
+The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
+from logs created by AnaPyzerParser object methods.
+"""
+class AnaPyzerAnalyzer:
+    def __init__(self):
+        self.DEFAULT_FILE_PATH = pathlib.Path.home()
+        self._in_file_path = pathlib.Path('')
+        self._error_listener = None
+        self._success_listener = None
 
     def is_malicious(self, timestamps, urls):
         malicious = False
@@ -28,6 +35,7 @@ class analyzer(object):
                     current_url += 1
                 else:
                     current_url += 1
+
             except IndexError:
                 break
         if (attempts > 0):
@@ -79,3 +87,99 @@ class analyzer(object):
                                                      [matchObj.group(8)], [matchObj.group(9)]]
         self.in_file.close()
         return parsed_log
+
+
+    # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
+    # and returns a list containing how many unique ip connections were present during each hour of the day
+    # this parsed list can be used with the plot_hourly_connections method
+    @staticmethod
+    def get_connections_per_hour(parsed_log):
+        connections_per_hour_table = {}
+
+        if parsed_log is None:
+            return None
+
+        time_place = parsed_log['timestamp']
+        cip_place = parsed_log['client-ip']
+
+
+        i = 0
+        date = parsed_log[i][parsed_log['date']]
+        connections_per_hour_table[date] = {}
+        while i < parsed_log['length']:
+            # iterate through the ip addresses recorded
+            if parsed_log[i][parsed_log['date']] != date:
+                date = parsed_log[i][parsed_log['date']]
+                connections_per_hour_table[date] = {}
+
+            time_string = str(parsed_log[i][parsed_log['timestamp']])
+            user_ip_address = str(parsed_log[i][parsed_log['client-ip']])
+
+            # time_string = str(time_string)
+            # user_ip_address = str(user_ip_address)
+            # print("Time string = " + time_string)
+            # print("IP address = "+ user_ip_address)
+            hours = time_string[:2]
+
+            if connections_per_hour_table[date].get(hours):
+                connections_per_hour_table[date][hours] += [user_ip_address]
+            else:
+                connections_per_hour_table[date][hours] = [user_ip_address]
+            i += 1
+
+        for date in connections_per_hour_table:
+            for time in connections_per_hour_table[date]:
+                ip_count = len(set(connections_per_hour_table[date][time]))
+                connections_per_hour_table[date][time] = ip_count
+
+        # print("connections per hour report complete")
+        # for time in connections_per_hour_table:
+        #     print(str(connections_per_hour_table[time]) + " unique connections at "+ time)
+        return connections_per_hour_table
+
+    # The plot_connections method take a log formatted by the get_connections_per_hour method
+    @staticmethod
+    def announce_connections(connections_log):
+        for date in connections_log:
+            print(date)
+            for log in connections_log[date]:
+                print(str(connections_log[date][log]) + " unique connections found at " + log + ":00")
+
+    @staticmethod
+    def get_connection_length_report(parsed_log):
+
+        ip_connection_time = {}
+        i = 0
+        connection_time = 0
+        current_IP = ''
+
+        while i < parsed_log['length']:
+
+            # Check that the IP address hasn't changed
+            if current_IP == parsed_log[i][parsed_log['client-ip']]:
+                connection_time += 1
+
+            else:
+                if i > 0:
+                    connection_time += 1
+                    IP_end_time = parsed_log[i - 1][parsed_log['timestamp']]
+                    info_array = [connection_time, IP_end_time]
+
+                    if ip_connection_time.get(current_IP):
+                        ip_connection_time[current_IP].append(info_array)
+
+                    else:
+                        ip_connection_time[current_IP] = [info_array]
+
+                current_IP = parsed_log[i][parsed_log['client-ip']]
+
+                # reset connection_time if ip has changed
+                connection_time = 0
+
+            i += 1
+
+        for ip in ip_connection_time:
+            time_sum = 0
+            for info in ip_connection_time[ip]:
+                print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: " + str(
+                    info[1]))
