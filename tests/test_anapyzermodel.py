@@ -2,10 +2,16 @@ import unittest
 import unittest.mock
 # Import the AnaPyzerModel class
 from anapyzermodel import AnaPyzerModel
+from anapyzerparser import AnaPyzerParser
+from anapyzeranalyzer import AnaPyzerAnalyzer
 
 class TestAnaPyzerModelMethods(unittest.TestCase):
     def setUp(self):
-        self.model = AnaPyzerModel()
+        # Instantiate the parser object to be passed to the model
+        parser = AnaPyzerParser()
+        # Instantiate the analyzer object to be passed to the model
+        analyzer = AnaPyzerAnalyzer()
+        self.model = AnaPyzerModel(parser, analyzer)
         self.log_file_mock = unittest.mock.Mock()
 
     # If a blank string is passed, then the model should just set the path to the default path
