@@ -1,14 +1,9 @@
-
-# Import the enum class for better readability
-import enum
 # Import the pathlib library for cross platform file path abstraction
 import pathlib
-# Import the re library to support regular expressions
-import re
 
-"""
-The AnaPyzerParser class contains all methods involved in parsing information from a text or log file.
-"""
+# The AnaPyzerParser class contains all methods involved in parsing information from a text or log file.
+
+
 class AnaPyzerParser:
 
     # Constructor
@@ -18,27 +13,27 @@ class AnaPyzerParser:
         self._error_listener = None
         self._success_listener = None
 
-    """
-        parse_common_apache_to_list() parses an apache log that has been exported in the common, default format by an apache web server.
-        This method is in need of additional work that will make it functional with logs that have custom configurations
-        Reference for Common Log Format:
-        https://httpd.apache.org/docs/1.3/logs.html#common
-        """
+    # parse_common_apache_to_list() parses an apache log that has been exported in the common, default format by an
+    #  apache web server. This method is in need of additional work that will make it functional with logs
+    # that have custom configurations
+    # Reference for Common Log Format:
+    # https://httpd.apache.org/docs/1.3/logs.html#common
 
-    def parse_common_apache_to_list(self, in_file):
+    @staticmethod
+    def parse_common_apache_to_list(in_file):
         if not in_file:
             return None
         log_data = {}
 
-        universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
-                           'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
-                           'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
-                           'bytes-received', 'time-taken']
+        # universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
+        #                   'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
+        #                   'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
+        #                   'bytes-received', 'time-taken'] - Dan unused variable
 
         # initialize placeholder variables in log_data array representing each of the w3c format parameters
 
         i = 0
-        # as long as there ar
+        # as long as there are lines in the log
         # Split string into list of individual words with space as delimitere lines in the file, loop:
         for line in in_file:
             # Use split to cut date/timestamp combined line out of data line
@@ -51,7 +46,7 @@ class AnaPyzerParser:
             # Create new split line for extracting other data
             split_line = line.split(' ')
 
-            client_ip = split_line[0]
+            # client_ip = split_line[0]   -  Dan unused variable
             request_info = line.split('"', 2)[1]
 
             method = request_info.split('/', 1)[0]
@@ -87,14 +82,12 @@ class AnaPyzerParser:
         # return the list containing data
         return log_data
 
-    """
-    parse_w3c_to_list will parse all information from an IIS/W3C format log into a list
-    With the locations of each field denoted in the parsed_log['parameter'] field
-    For instance, if c-ip is parsed into the 2 index of each line, requesting parsed_log['c-ip'] will return 2
-    This also works in reverse, so if you need the c-ip from each line, you request parsed_log[parsed_log['c-ip']]
-    For information on what each tag means refer to:
-    https://stackify.com/how-to-interpret-iis-logs/
-    """
+    # parse_w3c_to_list will parse all information from an IIS/W3C format log into a list
+    # With the locations of each field denoted in the parsed_log['parameter'] field
+    # For instance, if c-ip is parsed into the 2 index of each line, requesting parsed_log['c-ip'] will return 2
+    # This also works in reverse, so if you need the c-ip from each line, you request parsed_log[parsed_log['c-ip']]
+    # For information on what each tag means refer to:
+    # https://stackify.com/how-to-interpret-iis-logs/
 
     @classmethod
     def parse_w3c_to_list(cls, in_file):
@@ -148,7 +141,9 @@ class AnaPyzerParser:
                 i += 1
         # close the file once you're done getting all of the line information
         # once log file is parsed, assign the new positions of each requested parameter in the log_data list
-        # this will prevent issues when using methods that rely on tagged element values representing element placement in array
+        # this will prevent issues when using methods that rely on tagged element values representing element
+        #  placement in array
+
         k = 0
         for parameter in potential_parameters:
             # add an index in the log_data array representing the universal name for each field
@@ -160,11 +155,9 @@ class AnaPyzerParser:
         # return the list containing CSV data
         return log_data
 
-    """
-    requested parameters list can consist of the following, using the official IIS naming convention found in header
-    For information on what each tag means refer to:
-    https://stackify.com/how-to-interpret-iis-logs/
-    """
+    # requested parameters list can consist of the following, using the official IIS naming convention found in header
+    # For information on what each tag means refer to:
+    # https://stackify.com/how-to-interpret-iis-logs/
 
     @classmethod
     def parse_w3c_requested_to_list(cls, in_file, requested_parameters):
