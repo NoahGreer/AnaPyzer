@@ -34,7 +34,7 @@ class AnaPyzerParser:
 
         i = 0
         # as long as there are lines in the log
-        # Split string into list of individual words with space as delimitere lines in the file, loop:
+        # Split string into list of individual words with space as delimiter lines in the file, loop:
         for line in in_file:
             # Use split to cut date/timestamp combined line out of data line
             date_ts = line.split('[', 1)

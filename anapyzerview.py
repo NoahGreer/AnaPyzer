@@ -50,6 +50,10 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._out_file_browse_button_clicked = None
         self._open_file_button_clicked = None
 
+        # Initialize the graph view
+        self.graph_view_window = tkinter.Toplevel(self)
+        self.graph_view = AnaPyzerGraphView(self.graph_view_window)
+
     # Function for creating all the tkinter UI widgets in the window
     def _create_widgets(self):
         # Create a Label object to describe the purpose of the log_type_spinbox Spinbox object to the user
@@ -201,8 +205,8 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
     # Method to create a new graph view from x and y plot data
     def display_graph_view(self, x_data, y_data, x_label, y_label, title):
-        self.graph_view_window = tkinter.Toplevel(self)
-        self.graph_view = AnaPyzerGraphView(self.graph_view_window)
+        # self.graph_view_window = tkinter.Toplevel(self)
+        # self.graph_view = AnaPyzerGraphView(self.graph_view_window)
         self.graph_view.configure_graph(x_data, y_data, x_label, y_label, title)
 
     # Method to tell the view to prompt the user to select a file
@@ -365,4 +369,3 @@ class AnaPyzerGraphView(tkinter.ttk.Frame):
         self._axes.set_ylabel(y_label)
         self._figure.legend(title=title)
         self._canvas.draw()
-
