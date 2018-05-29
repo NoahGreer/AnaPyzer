@@ -1,5 +1,7 @@
 # Import the AnaPyzerModel class
 from anapyzermodel import *
+
+
 # Import the AnaPyzerView class
 # from anapyzerview import *
 # Import the pathlib library for cross platform file path abstraction
@@ -89,26 +91,28 @@ class AnaPyzerController:
     def open_file_button_clicked(self):
         # If we are in convert to CSV mode
         if self.model.get_file_parse_mode() == FileParseModes.CSV:
-                if self.model.read_file_to_csv():
-                    self.success_event_listener("Converted to csv successfully.")
-    #
-    #  START HERE Tuesday
-    #
+            if self.model.read_file_to_csv():
+                self.success_event_listener("Converted to csv successfully.")
         elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
-            if self.model.get_report_mode() == ReportModes.SUSP_ACT and\
+            if self.model.get_report_mode() == ReportModes.SUSP_ACT and \
                     self.model.get_log_type() == AcceptedLogTypes.IIS:
                 # open log file specified in the model
                 log_file = open(self.model.get_in_file_path(), 'r')
                 try:
-                    connections_list = self.self.model.parser.parse_w3c_to_list(log_file)
+                    connections_list = self.model.parser.parse_w3c_to_list(log_file)
                 except IOError:
                     self.error_event_listener("Error encountered, did you select the correct log type?")
                     return False
                 log_file.close()
-            pass  # Do stuff here
+                if connections_list is None:
+                    self.view.display_error_message("Connections list unable to be parsed,"
+                                                    " please make sure file is IIS format.")
+                    return False
+            #  suspicious_activity_report = self.model.analyzer.get_suspicious_activity_report(suspicious_activity)
+            #  pass  # Do stuff here
         elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             # If we are in graph connections per hour mode
-            if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and\
+            if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and \
                     self.model.get_log_type() == AcceptedLogTypes.IIS:
                 # open log file specified in the model
                 log_file = open(self.model.get_in_file_path(), 'r')
@@ -131,7 +135,7 @@ class AnaPyzerController:
                                                  "Hour of Day", "Unique IPs Accessing", date)
                 self.model.analyzer.get_connection_length_report(connections_list)
 
-            elif self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and\
+            elif self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and \
                     self.model.get_log_type() == AcceptedLogTypes.APACHE:
                 # self.success_event_listener(self.model.get_in_file_path())
                 log_file = open(self.model.get_in_file_path(), 'r')
@@ -169,18 +173,36 @@ class AnaPyzerController:
         # Set the input and output file paths to those set in the model
         self.view.set_in_file_path(str(self.model.get_in_file_path()))
         self.view.set_out_file_path(str(self.model.get_out_file_path()))
-        self.view.hide_graph_mode_option_menu_widgets()
-        self.view.hide_out_file_path_widgets()
-        self.view.disable_open_file_button()
+        if not self.model.in_file_path_is_valid():
+            self.view.hide_graph_mode_option_menu_widgets()
+            self.view.hide_report_mode_option_menu_widgets()
+            self.view.hide_out_file_path_widgets()
+            self.view.disable_open_file_button()
 
-        if self.model.get_file_parse_mode() == FileParseModes.REPORT:
+        if self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             if self.model.in_file_path_is_valid():
+                self.view.hide_report_mode_option_menu_widgets()
+                self.view.hide_out_file_path_widgets()
+                self.view.show_graph_mode_option_menu_widgets()
                 self.view.enable_open_file_button()
+            else:
+                self.view.show_graph_mode_option_menu_widgets()
+        elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
+            if self.model.in_file_path_is_valid():
+                self.view.hide_graph_mode_option_menu_widgets()
+                self.view.hide_out_file_path_widgets()
+                self.view.show_report_mode_option_menu_widgets()
+                self.view.enable_open_file_button()
+            else:
+                self.view.show_report_mode_option_menu_widgets()
         elif self.model.get_file_parse_mode() == FileParseModes.CSV:
+            self.view.hide_graph_mode_option_menu_widgets()
+            self.view.hide_report_mode_option_menu_widgets()
             self.view.show_out_file_path_widgets()
             if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
+                self.view.hide_graph_mode_option_menu_widgets()
+                self.view.hide_report_mode_option_menu_widgets()
+                self.view.show_out_file_path_widgets()
                 self.view.enable_open_file_button()
-        elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
-            self.view.show_graph_mode_option_menu_widgets()
-            if self.model.in_file_path_is_valid():
-                self.view.enable_open_file_button()
+            else:
+                self.view.show_out_file_path_widgets()
