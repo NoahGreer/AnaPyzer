@@ -25,6 +25,7 @@ class AnaPyzerController:
         self.view.set_log_type_options([log_type.value for log_type in AcceptedLogTypes])
         self.view.set_file_read_options([parse_mode.value for parse_mode in FileParseModes])
         self.view.set_graph_mode_options([graph_mode.value for graph_mode in GraphModes])
+        self.view.set_report_mode_options([report_mode.value for report_mode in ReportModes])
         self.view.set_in_file_path(self.model.get_in_file_path())
         self.view.set_out_file_path(self.model.get_out_file_path())
 
@@ -35,6 +36,7 @@ class AnaPyzerController:
         self.view.add_log_type_option_changed_listener(self.log_type_option_changed)
         self.view.add_file_read_option_changed_listener(self.file_read_option_changed)
         self.view.add_graph_mode_option_changed_listener(self.graph_mode_option_changed)
+        self.view.add_report_mode_option_changed_listener(self.report_mode_option_changed)
 
     # Start the application
     def run(self):
@@ -54,6 +56,11 @@ class AnaPyzerController:
     # Handler for when the graph mode option menu has an item selected
     def graph_mode_option_changed(self, value):
         self.model.set_graph_mode(value)
+        self.update_view()
+
+    # Handler for when the report mode option menu has an item selected
+    def report_mode_option_changed(self, value):
+        self.model.set_report_mode(value)
         self.update_view()
 
     # Function for handling when the in file "Browse..." button is pressed
@@ -84,7 +91,20 @@ class AnaPyzerController:
         if self.model.get_file_parse_mode() == FileParseModes.CSV:
                 if self.model.read_file_to_csv():
                     self.success_event_listener("Converted to csv successfully.")
+    #
+    #  START HERE Tuesday
+    #
         elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
+            if self.model.get_report_mode() == ReportModes.SUSP_ACT and\
+                    self.model.get_log_type() == AcceptedLogTypes.IIS:
+                # open log file specified in the model
+                log_file = open(self.model.get_in_file_path(), 'r')
+                try:
+                    connections_list = self.self.model.parser.parse_w3c_to_list(log_file)
+                except IOError:
+                    self.error_event_listener("Error encountered, did you select the correct log type?")
+                    return False
+                log_file.close()
             pass  # Do stuff here
         elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             # If we are in graph connections per hour mode
