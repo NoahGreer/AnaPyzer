@@ -4,7 +4,7 @@ from anapyzeranalyzer import AnaPyzerAnalyzer
 
 class TestAnaPyzerAnalyzerMethods(unittest.TestCase):
     def setUp(self):
-        # Instantiate the parser object
+        # Instantiate the analyzer object
         self.analyzer = AnaPyzerAnalyzer()
 
     def test_get_connections_per_hour_sample1(self):
