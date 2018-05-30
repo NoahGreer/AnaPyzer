@@ -4,9 +4,9 @@ import enum
 import pathlib
 # Import the re library to support regular expressions
 import re
-from anapyzeranalyzer import AnaPyzerAnalyzer
+#from anapyzeranalyzer import AnaPyzerAnalyzer
 
-analyzer = AnaPyzerAnalyzer()
+#analyzer = AnaPyzerAnalyzer()
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
@@ -179,11 +179,11 @@ class AnaPyzerModel:
             self._on_error("Could not write to file:\n" + e.filename + "\n" + e.strerror)
             return False
         if self.get_log_type() == AcceptedLogTypes.APACHE:
-            parsed_log = analyzer.parse_apache(self._in_file_path)
+            parsed_log = self.analyzer.parse_apache(self._in_file_path)
         elif self.get_log_type() == AcceptedLogTypes.IIS:
             pass
         for key in parsed_log:
-            if analyzer.is_malicious(parsed_log[key][2], parsed_log[key][4]):
+            if self.analyzer.is_malicious(parsed_log[key][2], parsed_log[key][4]):
                 out_file.write("Malicious activity detected from " + key + "\n\n")
 
         in_file.close()
