@@ -173,36 +173,23 @@ class AnaPyzerController:
         # Set the input and output file paths to those set in the model
         self.view.set_in_file_path(str(self.model.get_in_file_path()))
         self.view.set_out_file_path(str(self.model.get_out_file_path()))
-        if not self.model.in_file_path_is_valid():
-            self.view.hide_graph_mode_option_menu_widgets()
-            self.view.hide_report_mode_option_menu_widgets()
-            self.view.hide_out_file_path_widgets()
-            self.view.disable_open_file_button()
 
+        # Hide all optional widgets by default
+        self.view.hide_graph_mode_option_menu_widgets()
+        self.view.hide_report_mode_option_menu_widgets()
+        self.view.hide_out_file_path_widgets()
+        self.view.disable_open_file_button()
+
+        # Show only the widgets that pertain to the current parse mode
         if self.model.get_file_parse_mode() == FileParseModes.GRAPH:
+            self.view.show_graph_mode_option_menu_widgets()
             if self.model.in_file_path_is_valid():
-                self.view.hide_report_mode_option_menu_widgets()
-                self.view.hide_out_file_path_widgets()
-                self.view.show_graph_mode_option_menu_widgets()
                 self.view.enable_open_file_button()
-            else:
-                self.view.show_graph_mode_option_menu_widgets()
         elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
+            self.view.show_report_mode_option_menu_widgets()
             if self.model.in_file_path_is_valid():
-                self.view.hide_graph_mode_option_menu_widgets()
-                self.view.hide_out_file_path_widgets()
-                self.view.show_report_mode_option_menu_widgets()
                 self.view.enable_open_file_button()
-            else:
-                self.view.show_report_mode_option_menu_widgets()
         elif self.model.get_file_parse_mode() == FileParseModes.CSV:
-            self.view.hide_graph_mode_option_menu_widgets()
-            self.view.hide_report_mode_option_menu_widgets()
             self.view.show_out_file_path_widgets()
             if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
-                self.view.hide_graph_mode_option_menu_widgets()
-                self.view.hide_report_mode_option_menu_widgets()
-                self.view.show_out_file_path_widgets()
                 self.view.enable_open_file_button()
-            else:
-                self.view.show_out_file_path_widgets()
