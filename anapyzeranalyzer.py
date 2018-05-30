@@ -2,9 +2,9 @@
 import re
 
 
-class analyzer(object):
-    def __init__(self, in_file_path):
-        self.in_file_path = in_file_path
+class AnaPyzerAnalyzer(object):
+    #def __init__(self):
+
 
     def is_malicious(self, timestamps, urls):
         malicious = False
@@ -49,11 +49,11 @@ class analyzer(object):
                 malicious = True
         return malicious
 
-    def parse_apache(self):
+    def parse_apache(self, in_file_path):
         try:
-            self.file = open(self.in_file_path, 'r')
+            self.file = open(in_file_path, 'r')
         except:
-            print('Could not open file ' + self.in_file_path)
+            print('Could not open file ' + in_file_path)
 
         regex_IP_pattern = r'^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
         # retrieved from https://stackoverflow.com/questions/30956820/log-parsing-with-regex

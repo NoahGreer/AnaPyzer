@@ -10,11 +10,12 @@ import pathlib
 class AnaPyzerController:
     # Constructor
     # Takes a view and a model object
-    def __init__(self, model, view):
+    def __init__(self, model, view, analyzer):
         # Set the controller's reference to the application model object
         self.model = model
         # Set the controller's reference to the application view object
         self.view = view
+        self.analyzer = analyzer
 
         # Register listenters in the model
         self.model.add_error_listener(self.error_event_listener)
@@ -84,7 +85,8 @@ class AnaPyzerController:
                 if self.model.read_file_to_csv():
                     self.success_event_listener("Converted to csv successfully.")
         elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
-            pass #Do stuff here
+            if self.model.read_file_to_report():
+                self.success_event_listener("Report successfully generated")
         elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             # If we are in graph connections per hour mode
             if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.IIS:
@@ -148,7 +150,8 @@ class AnaPyzerController:
         self.view.disable_open_file_button()
 
         if self.model.get_file_parse_mode() == FileParseModes.REPORT:
-            if self.model.in_file_path_is_valid():
+            self.view.show_out_file_path_widgets()
+            if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
                 self.view.enable_open_file_button()
         elif self.model.get_file_parse_mode() == FileParseModes.CSV:
             self.view.show_out_file_path_widgets()
