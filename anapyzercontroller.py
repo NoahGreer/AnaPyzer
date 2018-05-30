@@ -142,10 +142,13 @@ class AnaPyzerController:
         # Set the input and output file paths to those set in the model
         self.view.set_in_file_path(str(self.model.get_in_file_path()))
         self.view.set_out_file_path(str(self.model.get_out_file_path()))
+
+        # Hide all optional widgets
         self.view.hide_graph_mode_option_menu_widgets()
         self.view.hide_out_file_path_widgets()
         self.view.disable_open_file_button()
 
+        # Display only the optional widgets that are needed for the current file parse mode
         if self.model.get_file_parse_mode() == FileParseModes.REPORT:
             if self.model.in_file_path_is_valid():
                 self.view.enable_open_file_button()
