@@ -189,9 +189,10 @@ class AnaPyzerController:
                 self.view.enable_open_file_button()
         elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
             self.view.show_report_mode_option_menu_widgets()
-            if self.model.in_file_path_is_valid():
-        if self.model.get_file_parse_mode() == FileParseModes.REPORT:
             self.view.show_out_file_path_widgets()
+        #    if self.model.in_file_path_is_valid():
+       # if self.model.get_file_parse_mode() == FileParseModes.REPORT:
+
             if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
                 self.view.enable_open_file_button()
         elif self.model.get_file_parse_mode() == FileParseModes.CSV:

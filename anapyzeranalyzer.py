@@ -68,7 +68,6 @@ class AnaPyzerAnalyzer:
         regex_ip_pattern = r'^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
         # retrieved from https://stackoverflow.com/questions/30956820/log-parsing-with-regex
         parsed_log = {}
-
         for line in self.file:
             matchobj = re.match(regex_ip_pattern, line, flags=0)
             # Creates a dictionary with the IP address as the key, and
