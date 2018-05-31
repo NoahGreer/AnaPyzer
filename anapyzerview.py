@@ -18,7 +18,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
     # Class values for the default x-axis and y-axis padding
     WIDGET_X_PAD = 2
     WIDGET_Y_PAD = 2
-    DEFAULT_ENTRY_WIDTH = 40
+    DEFAULT_ENTRY_WIDTH = 100
 
     def __init__(self, master=None):
         # Call the tkinter ttk Frame base class constructor
@@ -38,6 +38,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._out_file_path = tkinter.StringVar()
         self._file_read_choice = tkinter.StringVar()
         self._graph_mode_choice = tkinter.StringVar()
+        self._report_mode_choice = tkinter.StringVar()
 
         # Tell the view to create the widgets and populate the window with them
         self._create_widgets()
@@ -47,15 +48,20 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._in_file_browse_button_clicked = None
         self._file_read_option_changed = None
         self._graph_mode_option_changed = None
+        self._report_mode_option_changed = None
         self._out_file_browse_button_clicked = None
         self._open_file_button_clicked = None
+
+        # Initialize the graph view
+        self.graph_view_window = None
+        self.graph_view = None
 
     # Function for creating all the tkinter UI widgets in the window
     def _create_widgets(self):
         # Create a Label object to describe the purpose of the log_type_spinbox Spinbox object to the user
         self._log_type_option_menu_label = tkinter.ttk.Label(
             self,  # Make it a child of the main window object
-            text='Choose log type')  # Set the label text
+            text='Choose log type', font=("arial", "12", "normal"))  # Set the label text & font
         self._log_type_option_menu_label.grid(
             row=0, column=0,  # Place the label in the UI grid,
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
@@ -68,15 +74,16 @@ class AnaPyzerView(tkinter.ttk.Frame):
             None,  # Set the default value of the OptionMenu
             None,  # Set the other values of the OptionMenu
             command=self._on_log_type_option_changed)
+
         self._log_type_option_menu.grid(
-            row=0, column=1,  # Place the OptionMenu in the UI grid
+            row=0, column=2,  # Place the OptionMenu in the UI grid
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
-            sticky=tkinter.E + tkinter.W)  # Stick to the left
+            sticky=tkinter.E)  # Stick to the right
 
         # Create a Label object to describe the purpose of the in_file_path_field Entry object to the user
         self._in_file_path_field_label = tkinter.ttk.Label(
             self,  # Make it a child of the main window object
-            text='Choose input file path')  # Set the label text
+            text='Choose input file path', font=("arial", "12", "normal"))  # Set the label text & font
         self._in_file_path_field_label.grid(
             row=1, column=0,  # Place the Label in the UI grid,
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
@@ -107,7 +114,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
         # Create a Label object to describe the purpose of the log_type_spinbox Spinbox object to the user
         self._file_read_option_menu_label = tkinter.ttk.Label(
             self,  # Make it a child of the main window object
-            text='Choose file read mode')  # Set the label text
+            text='Choose file read mode', font=("arial", "12", "normal"))  # Set the label text & font
         self._file_read_option_menu_label.grid(
             row=3, column=0,  # Place the label in the UI grid,
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
@@ -121,20 +128,20 @@ class AnaPyzerView(tkinter.ttk.Frame):
             None,  # Set the other values of the OptionMenu
             command=self._on_file_read_option_changed)
         self._file_read_option_menu.grid(
-            row=3, column=1,  # Place the Spinbox in the UI grid
+            row=3, column=2,  # Place the Spinbox in the UI grid
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
-            sticky=tkinter.E + tkinter.W)  # Stick to the left and right of its cell
+            sticky=tkinter.E)  # Stick to the right of its cell
 
         # Create a Label object to describe the purpose of the graph mode option menu to the user
         self._graph_mode_option_menu_label = tkinter.ttk.Label(
             self,  # Make it a child of the main window object
-            text='Choose graph mode')  # Set the label text
+            text='Choose graph mode', font=("arial", "12", "normal"))  # Set the label text & font
         self._graph_mode_option_menu_label.grid(
             row=4, column=0,  # Place the label in the UI grid,
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
             sticky=tkinter.W)  # Stick to the left of its cell
 
-        # Create an OptionMenu object for the read option menu
+        # Create an OptionMenu object for the graph mode option
         self._graph_mode_option_menu = tkinter.ttk.OptionMenu(
             self,  # Make it a child of the main window object
             self._graph_mode_choice,  # Watch the controller's variable
@@ -142,16 +149,37 @@ class AnaPyzerView(tkinter.ttk.Frame):
             None,  # Set the other values of the OptionMenu
             command=self._on_graph_mode_option_changed)
         self._graph_mode_option_menu.grid(
-            row=4, column=1,  # Place the Spinbox in the UI grid
+            row=4, column=2,  # Place the Spinbox in the UI grid
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
-            sticky=tkinter.E + tkinter.W)  # Stick to the left and right of its cell
+            sticky=tkinter.E)  # Stick to the right of its cell
+
+        # Create a Label object to describe the purpose of the report mode option menu to the user
+        self._report_mode_option_menu_label = tkinter.ttk.Label(
+            self,  # Make it a child of the main window object
+            text='Choose report mode', font=("arial", "12", "normal"))  # Set the label text & font
+        self._report_mode_option_menu_label.grid(
+            row=4, column=0,  # Place the label in the UI grid,
+            padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
+            sticky=tkinter.W)  # Stick to the left of its cell
+
+        # Create an OptionMenu object for the report mode option
+        self._report_mode_option_menu = tkinter.ttk.OptionMenu(
+            self,  # Make it a child of the main window object
+            self._report_mode_choice,  # Watch the controller's variable
+            None,  # Set the default value of the OptionMenu
+            None,  # Set the other values of the OptionMenu
+            command=self._on_report_mode_option_changed)
+        self._report_mode_option_menu.grid(
+            row=4, column=2,  # Place the Spinbox in the UI grid
+            padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
+            sticky=tkinter.E)  # Stick to the right of its cell
 
         # Create a Label object to describe the purpose of the out_file_path_field Entry object to the user
         self._out_file_path_field_label = tkinter.ttk.Label(
             self,  # Make it a child of the main window object
-            text='Choose output file path')  # Set the label text
+            text='Choose output file path', font=("arial", "12", "normal"))  # Set the label text & font
         self._out_file_path_field_label.grid(
-            row=5, column=0,  # Place the Label in the UI grid,
+            row=4, column=0,  # Place the Label in the UI grid,
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
             sticky=tkinter.W)  # Stick to the left of its cell
 
@@ -162,7 +190,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
             textvariable=self._out_file_path,  # Bind to the self._out_file_path variable for changes
             state=tkinter.DISABLED)  # Disable the text field so that the user cannot enter arbitrary file paths
         self._out_file_path_field.grid(
-            row=6, column=0,  # Place the entry in the UI grid
+            row=5, column=0,  # Place the entry in the UI grid
             columnspan=3,  # Span across multiple columns in the UI grid
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
             sticky=tkinter.E + tkinter.W)  # Stick to the left of its cell
@@ -173,7 +201,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
             text='Browse...',  # Set the button text
             command=self._on_out_file_browse_button_clicked)
         self._out_file_browse_button.grid(
-            row=6, column=3,  # Place the button in the UI grid
+            row=5, column=3,  # Place the button in the UI grid
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
             sticky=tkinter.E)  # Stick to the right of its cell
 
@@ -200,12 +228,10 @@ class AnaPyzerView(tkinter.ttk.Frame):
         tkinter.messagebox.showinfo("Success", message)
 
     # Method to create a new graph view from x and y plot data
-
     def display_graph_view(self, x_data, y_data, x_label, y_label, title):
         self.graph_view_window = tkinter.Toplevel(self)
         self.graph_view = AnaPyzerGraphView(self.graph_view_window)
         self.graph_view.configure_graph(x_data, y_data, x_label, y_label, title)
-
 
     # Method to tell the view to prompt the user to select a file
     # Takes a string for the starting directory,
@@ -249,6 +275,12 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._graph_mode_option_menu.set_menu(graph_mode_options[0], *graph_mode_options)
         self._on_graph_mode_option_changed(graph_mode_options[0])
 
+    # Method to set the graph options in the report options menu
+    def set_report_mode_options(self, report_mode_options):
+        # Set new options
+        self._report_mode_option_menu.set_menu(report_mode_options[0], *report_mode_options)
+        self._on_report_mode_option_changed(report_mode_options[0])
+
     # Method to set the in file path text
     def set_in_file_path(self, in_file_path):
         self.resize_entry_field(self._in_file_path_field, len(in_file_path))
@@ -284,6 +316,16 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._graph_mode_option_menu_label.grid_remove()
         self._graph_mode_option_menu.grid_remove()
 
+    # Method to show the report options menu widgets
+    def show_report_mode_option_menu_widgets(self):
+        self._report_mode_option_menu_label.grid()
+        self._report_mode_option_menu.grid()
+
+    # Method to hide the report options menu widgets
+    def hide_report_mode_option_menu_widgets(self):
+        self._report_mode_option_menu_label.grid_remove()
+        self._report_mode_option_menu.grid_remove()
+
     # Method to show the output file path widgets
     def show_out_file_path_widgets(self):
         self._out_file_path_field_label.grid()
@@ -315,6 +357,10 @@ class AnaPyzerView(tkinter.ttk.Frame):
         if self._graph_mode_option_changed:
             self._graph_mode_option_changed(value)
 
+    def _on_report_mode_option_changed(self, value):
+        if self._report_mode_option_changed:
+            self._report_mode_option_changed(value)
+
     def _on_out_file_browse_button_clicked(self):
         if self._out_file_browse_button_clicked:
             self._out_file_browse_button_clicked()
@@ -335,6 +381,9 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
     def add_graph_mode_option_changed_listener(self, listener):
         self._graph_mode_option_changed = listener
+
+    def add_report_mode_option_changed_listener(self, listener):
+        self._report_mode_option_changed = listener
 
     def add_out_file_browse_button_clicked_listener(self, listener):
         self._out_file_browse_button_clicked = listener
@@ -357,7 +406,7 @@ class AnaPyzerGraphView(tkinter.ttk.Frame):
 
         # Create the figure
         self._figure = matplotlib.figure.Figure(figsize=(6, 6), dpi=100)
-        self._axes = self._figure.add_axes([0.15, 0.15, .75, .75])
+        self._axes = self._figure.add_axes([0.15, 0.15, 0.75, 0.75])
         self._canvas = FigureCanvasTkAgg(self._figure, self)
         self._canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=tkinter.TRUE)
 
@@ -367,4 +416,3 @@ class AnaPyzerGraphView(tkinter.ttk.Frame):
         self._axes.set_ylabel(y_label)
         self._figure.legend(title=title)
         self._canvas.draw()
-
