@@ -2,18 +2,20 @@
 import re
 import pathlib
 
-"""
-The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
-from logs created by AnaPyzerParser object methods.
-"""
+# The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
+# from logs created by AnaPyzerParser object methods.
+
+
 class AnaPyzerAnalyzer:
     def __init__(self):
         self.DEFAULT_FILE_PATH = pathlib.Path.home()
         self._in_file_path = pathlib.Path('')
+        self.file = self._in_file_path
         self._error_listener = None
         self._success_listener = None
 
-    def is_malicious(self, timestamps, urls):
+    @staticmethod
+    def is_malicious(timestamps, urls):
         malicious = False
         attempts = 0
         counter = 0
@@ -22,14 +24,14 @@ class AnaPyzerAnalyzer:
         for timestamp in timestamps:
             temp = ""
             for c in timestamp:
-                if (c.isdigit()):
+                if c.isdigit():
                     temp += c
             timestamps[timestamps.index(timestamp)] = temp
         timestamps.sort()
         urls.sort()
         for url in urls:
             try:
-                if (url == urls[current_url]):
+                if url == urls[current_url]:
                     malicious = True
                     attempts += 1
                     current_url += 1
@@ -38,11 +40,11 @@ class AnaPyzerAnalyzer:
 
             except IndexError:
                 break
-        if (attempts > 0):
+        if attempts > 0:
             attempts += 1
         for timestamp in timestamps:
             if (int(timestamp) - int(timestamps[
-                                         current_timestamp])) < 11:  # goes forward lookin for timestamps within ten seconds of current
+                                         current_timestamp])) < 11:  # go forward looking for timestamps within 10 secs
                 counter += 1
             else:
                 current_timestamp = timestamps.index(timestamp)
@@ -63,27 +65,30 @@ class AnaPyzerAnalyzer:
         except:
             print('Could not open file ' + in_file_path)
 
-        regex_IP_pattern = r'^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
+        regex_ip_pattern = r'^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
         # retrieved from https://stackoverflow.com/questions/30956820/log-parsing-with-regex
         parsed_log = {}
 
         for line in self.file:
-            matchObj = re.match(regex_IP_pattern, line, flags=0)
-                                                         # Creates a dictionary with the IP address as the key, and a list of lists
-            if matchObj:  # Group 1 is ip address       #pertaing to the 8 other groups as the value
-                if parsed_log.get(matchObj.group(1)):  # for our purposes, i believe only group 1, 4, 6 are necessary
-                    parsed_log[matchObj.group(1)][0].append(matchObj.group(2))  # Client Identity
-                    parsed_log[matchObj.group(1)][1].append(matchObj.group(3))  # user ID
-                    parsed_log[matchObj.group(1)][2].append(matchObj.group(4))  # date and time
-                    parsed_log[matchObj.group(1)][3].append(matchObj.group(5))  # method
-                    parsed_log[matchObj.group(1)][4].append(matchObj.group(6))  # endpoint (url)
-                    parsed_log[matchObj.group(1)][5].append(matchObj.group(7))  # protocol
-                    parsed_log[matchObj.group(1)][6].append(matchObj.group(8))  # response code
-                    parsed_log[matchObj.group(1)][7].append(matchObj.group(9))  # content size
+            matchobj = re.match(regex_ip_pattern, line, flags=0)
+            # Creates a dictionary with the IP address as the key, and
+            # a list of lists pertaining to the 8 other groups as the value
+            # Group 1 is the ip address
+            # for our purposes, i believe only group 1, 4, 6 are necessary
+            if matchobj:
+                if parsed_log.get(matchobj.group(1)):
+                    parsed_log[matchobj.group(1)][0].append(matchobj.group(2))  # Client Identity
+                    parsed_log[matchobj.group(1)][1].append(matchobj.group(3))  # user ID
+                    parsed_log[matchobj.group(1)][2].append(matchobj.group(4))  # date and time
+                    parsed_log[matchobj.group(1)][3].append(matchobj.group(5))  # method
+                    parsed_log[matchobj.group(1)][4].append(matchobj.group(6))  # endpoint (url)
+                    parsed_log[matchobj.group(1)][5].append(matchobj.group(7))  # protocol
+                    parsed_log[matchobj.group(1)][6].append(matchobj.group(8))  # response code
+                    parsed_log[matchobj.group(1)][7].append(matchobj.group(9))  # content size
                 else:  # some of these groups are often blank
-                    parsed_log[matchObj.group(1)] = [[matchObj.group(2)], [matchObj.group(3)], [matchObj.group(4)],
-                                                     [matchObj.group(5)], [matchObj.group(6)], [], [matchObj.group(7)],
-                                                     [matchObj.group(8)], [matchObj.group(9)]]
+                    parsed_log[matchobj.group(1)] = [[matchobj.group(2)], [matchobj.group(3)], [matchobj.group(4)],
+                                                     [matchobj.group(5)], [matchobj.group(6)], [], [matchobj.group(7)],
+                                                     [matchobj.group(8)], [matchobj.group(9)]]
         self.file.close()
         return parsed_log
 
@@ -98,9 +103,8 @@ class AnaPyzerAnalyzer:
         if parsed_log is None:
             return None
 
-        time_place = parsed_log['timestamp']
-        cip_place = parsed_log['client-ip']
-
+        # time_place = parsed_log['timestamp']  Dan unused variable
+        # cip_place = parsed_log['client-ip']   Dan unused variable
 
         i = 0
         date = parsed_log[i][parsed_log['date']]
@@ -150,27 +154,27 @@ class AnaPyzerAnalyzer:
         ip_connection_time = {}
         i = 0
         connection_time = 0
-        current_IP = ''
+        current_ip = ''
 
         while i < parsed_log['length']:
 
             # Check that the IP address hasn't changed
-            if current_IP == parsed_log[i][parsed_log['client-ip']]:
+            if current_ip == parsed_log[i][parsed_log['client-ip']]:
                 connection_time += 1
 
             else:
                 if i > 0:
                     connection_time += 1
-                    IP_end_time = parsed_log[i - 1][parsed_log['timestamp']]
-                    info_array = [connection_time, IP_end_time]
+                    ip_end_time = parsed_log[i - 1][parsed_log['timestamp']]
+                    info_array = [connection_time, ip_end_time]
 
-                    if ip_connection_time.get(current_IP):
-                        ip_connection_time[current_IP].append(info_array)
+                    if ip_connection_time.get(current_ip):
+                        ip_connection_time[current_ip].append(info_array)
 
                     else:
-                        ip_connection_time[current_IP] = [info_array]
+                        ip_connection_time[current_ip] = [info_array]
 
-                current_IP = parsed_log[i][parsed_log['client-ip']]
+                current_ip = parsed_log[i][parsed_log['client-ip']]
 
                 # reset connection_time if ip has changed
                 connection_time = 0
@@ -178,7 +182,7 @@ class AnaPyzerAnalyzer:
             i += 1
 
         for ip in ip_connection_time:
-            time_sum = 0
+            # time_sum = 0  Dan unused variable
             for info in ip_connection_time[ip]:
-                print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: " + str(
-                    info[1]))
+                print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: "
+                      + str(info[1]))
