@@ -4,8 +4,9 @@ import enum
 import pathlib
 # Import the re library to support regular expressions
 import re
+#from anapyzeranalyzer import AnaPyzerAnalyzer
 
-
+#analyzer = AnaPyzerAnalyzer()
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
@@ -177,6 +178,32 @@ class AnaPyzerModel:
         out_file.close()
 
         self._on_success("Successfully converted log file to csv")
+        return True
+
+    def read_file_to_report(self):
+        try:
+            in_file = open(self._in_file_path, 'r')
+        except IOError as e:
+            self._on_error("Could not read from file:\n" + e.filename + "\n" + e.strerror)
+            return False
+
+        try:
+            out_file = open(self._out_file_path, 'w')
+        except IOError as e:
+            in_file.close()
+            self._on_error("Could not write to file:\n" + e.filename + "\n" + e.strerror)
+            return False
+        if self.get_log_type() == AcceptedLogTypes.APACHE:
+            parsed_log = self.analyzer.parse_apache(self._in_file_path)
+        elif self.get_log_type() == AcceptedLogTypes.IIS:
+            pass
+        for key in parsed_log:
+            if self.analyzer.is_malicious(parsed_log[key][2], parsed_log[key][4]):
+                out_file.write("Malicious activity detected from " + key + "\n\n")
+
+        in_file.close()
+        out_file.close()
+        self._on_success("Report generated successfully")
         return True
 
     # Internal methods to call external listener methods

@@ -158,7 +158,6 @@ class AnaPyzerView(tkinter.ttk.Frame):
             self,  # Make it a child of the main window object
             text='Choose report mode', font=("arial", "12", "normal"))  # Set the label text & font
         self._report_mode_option_menu_label.grid(
-            row=4, column=0,  # Place the label in the UI grid,
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
             sticky=tkinter.W)  # Stick to the left of its cell
 
@@ -179,7 +178,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
             self,  # Make it a child of the main window object
             text='Choose output file path', font=("arial", "12", "normal"))  # Set the label text & font
         self._out_file_path_field_label.grid(
-            row=4, column=0,  # Place the Label in the UI grid,
+            row=5, column=0,  # Place the Label in the UI grid,
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
             sticky=tkinter.W)  # Stick to the left of its cell
 
@@ -190,7 +189,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
             textvariable=self._out_file_path,  # Bind to the self._out_file_path variable for changes
             state=tkinter.DISABLED)  # Disable the text field so that the user cannot enter arbitrary file paths
         self._out_file_path_field.grid(
-            row=5, column=0,  # Place the entry in the UI grid
+            row=6, column=0,  # Place the entry in the UI grid
             columnspan=3,  # Span across multiple columns in the UI grid
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
             sticky=tkinter.E + tkinter.W)  # Stick to the left of its cell
@@ -201,7 +200,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
             text='Browse...',  # Set the button text
             command=self._on_out_file_browse_button_clicked)
         self._out_file_browse_button.grid(
-            row=5, column=3,  # Place the button in the UI grid
+            row=6, column=3,  # Place the button in the UI grid
             padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
             sticky=tkinter.E)  # Stick to the right of its cell
 

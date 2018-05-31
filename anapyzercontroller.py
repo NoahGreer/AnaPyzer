@@ -91,9 +91,11 @@ class AnaPyzerController:
     def open_file_button_clicked(self):
         # If we are in convert to CSV mode
         if self.model.get_file_parse_mode() == FileParseModes.CSV:
-            if self.model.read_file_to_csv():
-                self.success_event_listener("Converted to csv successfully.")
+                if self.model.read_file_to_csv():
+                    self.success_event_listener("Converted to csv successfully.")
         elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
+            if self.model.read_file_to_report():
+                self.success_event_listener("Report successfully generated")
             if self.model.get_report_mode() == ReportModes.SUSP_ACT and \
                     self.model.get_log_type() == AcceptedLogTypes.IIS:
                 # open log file specified in the model
@@ -187,9 +189,17 @@ class AnaPyzerController:
                 self.view.enable_open_file_button()
         elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
             self.view.show_report_mode_option_menu_widgets()
-            if self.model.in_file_path_is_valid():
+            self.view.show_out_file_path_widgets()
+        #    if self.model.in_file_path_is_valid():
+       # if self.model.get_file_parse_mode() == FileParseModes.REPORT:
+
+            if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
                 self.view.enable_open_file_button()
         elif self.model.get_file_parse_mode() == FileParseModes.CSV:
             self.view.show_out_file_path_widgets()
             if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
+                self.view.enable_open_file_button()
+        elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
+            self.view.show_graph_mode_option_menu_widgets()
+            if self.model.in_file_path_is_valid():
                 self.view.enable_open_file_button()
