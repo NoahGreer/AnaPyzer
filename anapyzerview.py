@@ -58,6 +58,10 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._graph_mode_option_menu_widgets = AnaPyzerView.OptionMenuWidgetGroup(
             'Choose graph mode',
             self)
+        # Create the widgets for the report mode options menu
+        self._report_mode_option_menu_widgets = AnaPyzerView.OptionMenuWidgetGroup(
+            'Choose report mode',
+            self)
         # Create the widgets for the output file path
         self._out_file_path_field_widgets = AnaPyzerView.FilePathWidgetGroup(
             'Choose output file path',
@@ -124,6 +128,11 @@ class AnaPyzerView(tkinter.ttk.Frame):
         # Set new options
         self._graph_mode_option_menu_widgets.set_menu(graph_mode_options)
 
+    # Method to set the report options in the report options menu
+    def set_report_mode_options(self, report_mode_options):
+        # Set new options
+        self._report_mode_option_menu_widgets.set_menu(report_mode_options)
+
     # Method to set the in file path text
     def set_in_file_path(self, in_file_path):
         self._in_file_path_field_widgets.set_path(in_file_path)
@@ -148,6 +157,14 @@ class AnaPyzerView(tkinter.ttk.Frame):
     def hide_graph_mode_option_menu_widgets(self):
         self._graph_mode_option_menu_widgets.grid_remove()
 
+    # Method to show the report options menu widgets
+    def show_report_mode_option_menu_widgets(self):
+        self._report_mode_option_menu_widgets.grid()
+
+    # Method to hide the report options menu widgets
+    def hide_report_mode_option_menu_widgets(self):
+        self._report_mode_option_menu_widgets.grid_remove()
+
     # Method to show the output file path widgets
     def show_out_file_path_widgets(self):
         self._out_file_path_field_widgets.grid()
@@ -168,6 +185,9 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
     def set_graph_mode_option_changed_listener(self, listener):
         self._graph_mode_option_menu_widgets.set_menu_selection_changed_listener(listener)
+
+    def set_report_mode_option_changed_listener(self, listener):
+        self._report_mode_option_menu_widgets.set_menu_selection_changed_listener(listener)
 
     def set_out_file_browse_button_clicked_listener(self, listener):
         self._out_file_path_field_widgets.set_button_clicked_listener(listener)

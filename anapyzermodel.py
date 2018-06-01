@@ -20,8 +20,8 @@ class AcceptedFileFormats(enum.Enum):
 
 class FileParseModes(enum.Enum):
     GRAPH = 'Generate graph'
+    REPORT = 'Generate report'
     CSV = 'Convert to csv'
-    REPORT = "Generate report"
     DEFAULT = GRAPH
 
 
@@ -30,6 +30,12 @@ class GraphModes(enum.Enum):
     # CON_PER_MIN = 'Connections per minute'
     SIMUL_CON = 'Simultaneous connections'
     DEFAULT = CON_PER_HOUR
+
+
+class ReportModes(enum.Enum):
+    URL_RPT = 'Website pages'
+    SUSP_ACT = 'Suspicious activity report'
+    DEFAULT = SUSP_ACT
 
 
 class OutputFileFormats(enum.Enum):
@@ -48,6 +54,7 @@ class AnaPyzerModel:
         self._log_type = AcceptedLogTypes.DEFAULT
         self._file_parse_mode = FileParseModes.DEFAULT
         self._graph_mode = GraphModes.DEFAULT
+        self._report_mode = ReportModes.DEFAULT
         self._error_listener = None
         self._success_listener = None
         self.analyzer = analyzer
@@ -138,6 +145,14 @@ class AnaPyzerModel:
     # Getter for the type of graph to generate
     def get_graph_mode(self):
         return self._graph_mode
+
+    # Setter for the type of report to generate
+    def set_report_mode(self, report_mode):
+        self._report_mode = ReportModes(report_mode)
+
+    # Getter for the type of report to generate
+    def get_report_mode(self):
+        return self._report_mode
 
     # Reads from the input file, converts to csv, and writes to the output file
     def read_file_to_csv(self):
