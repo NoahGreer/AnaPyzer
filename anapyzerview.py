@@ -2,8 +2,6 @@
 import tkinter
 # Import the tkinter themed UI library
 import tkinter.ttk
-# Import the tkinter font library
-import tkinter.font
 # Import the filedialog subclass to allow the user to graphically select a log file
 import tkinter.filedialog
 # Import the tkMessageBox subclass to allow showing system error messages
@@ -20,8 +18,8 @@ class AnaPyzerView(tkinter.ttk.Frame):
     # Class values for the default x-axis and y-axis padding
     WIDGET_X_PAD = 2
     WIDGET_Y_PAD = 2
+    DEFAULT_ENTRY_WIDTH = 100
     LABEL_WIDTH = 16
-    DEFAULT_ENTRY_WIDTH = 40
     DEFAULT_STICKY_DIRECTION = tkinter.W
     DEFAULT_FONT_SIZE = 12
 
@@ -36,6 +34,14 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
         # Set the geometry manager for the main window to use the grid layout
         self.grid()
+
+        # Initialize view instance variables to update the view objects with
+        self._log_type_choice = tkinter.StringVar()
+        self._in_file_path = tkinter.StringVar()
+        self._out_file_path = tkinter.StringVar()
+        self._file_read_choice = tkinter.StringVar()
+        self._graph_mode_choice = tkinter.StringVar()
+
         # Tell the view to create the widgets and populate the window with them
         self._create_widgets()
 
@@ -323,7 +329,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
             # Create the figure
             self._figure = matplotlib.figure.Figure(figsize=(6, 6), dpi=100)
-            self._axes = self._figure.add_axes([0.15, 0.15, .75, .75])
+            self._axes = self._figure.add_axes([0.15, 0.15, 0.75, 0.75])
             self._canvas = FigureCanvasTkAgg(self._figure, self)
             self._canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=tkinter.TRUE)
 

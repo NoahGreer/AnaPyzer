@@ -93,18 +93,21 @@ class AnaPyzerController:
                 log_file = open(self.model.get_in_file_path(), 'r')
                 try:
                     connections_list = self.model.parser.parse_w3c_to_list(log_file)
-                except:
+                except IOError:
                     self.error_event_listener("Error encountered, did you select the correct log type?")
                     return False
                 log_file.close()
                 if connections_list is None:
-                    self.view.display_error_message("Connections list unable to be parsed, please make sure file is IIS format.")
+                    self.view.display_error_message("Connections list unable to be parsed,"
+                                                    " please make sure file is IIS format.")
                     return False
                 connections_per_hour_dict = self.model.analyzer.get_connections_per_hour(connections_list)
-                #self.analyzer.announce_connections(connections_per_hour_dict)
+                # self.analyzer.announce_connections(connections_per_hour_dict)
 
                 for date in connections_per_hour_dict:
-                    self.view.display_graph_view(connections_per_hour_dict[date].keys(), connections_per_hour_dict[date].values(), "Hour of Day", "Unique IPs Accessing",date)
+                    self.view.display_graph_view(connections_per_hour_dict[date].keys(),
+                                                 connections_per_hour_dict[date].values(),
+                                                 "Hour of Day", "Unique IPs Accessing", date)
                 self.model.analyzer.get_connection_length_report(connections_list)
 
 
@@ -116,11 +119,12 @@ class AnaPyzerController:
                 except IndexError:
                     self.error_event_listener("IndexError encountered, did you select the correct log type?")
                     return False
-                if connections_list == None:
-                    self.view.display_error_message("Connections list unable to be parsed, please make sure file is Apache format.")
+                if connections_list is None:
+                    self.view.display_error_message("Connections list unable to be parsed,"
+                                                    " please make sure file is Apache format.")
                     return False
                 connections_per_hour_dict = self.model.analyzer.get_connections_per_hour(connections_list)
-                #self.analyzer.announce_connections(connections_per_hour_dict)
+                # self.analyzer.announce_connections(connections_per_hour_dict)
                 for date in connections_per_hour_dict:
                     self.view.display_graph_view(
                         connections_per_hour_dict[date].keys(),
@@ -141,7 +145,23 @@ class AnaPyzerController:
             if report_mode == ReportModes.URL_RPT:
                 pass #Do stuff here
             elif report_mode == ReportModes.SUSP_ACT:
-                pass #Do stuff here
+                if self.model.get_log_type() == AcceptedLogTypes.IIS:
+                    # open log file specified in the model
+                    log_file = open(self.model.get_in_file_path(), 'r')
+                    try:
+                        connections_list = self.model.parser.parse_w3c_to_list(log_file)
+                    except IOError:
+                        self.error_event_listener("Error encountered, did you select the correct log type?")
+                        return False
+                    log_file.close()
+                    if connections_list is None:
+                        self.view.display_error_message("Connections list unable to be parsed,"
+                                                        " please make sure file is IIS format.")
+                        return False
+                    else:
+                        self.success_event_listener("Report successfully generated")
+                #  suspicious_activity_report = self.model.analyzer.get_suspicious_activity_report(suspicious_activity)
+                #  pass  # Do stuff here
 
         elif parse_mode == FileParseModes.CSV:
             if self.model.read_file_to_csv():
