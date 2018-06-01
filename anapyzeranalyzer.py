@@ -59,16 +59,15 @@ class AnaPyzerAnalyzer:
                 malicious = True
         return malicious
 
-    def parse_apache(self):
+    def parse_apache(self, in_file_path):
         try:
-            self.file = open(self._in_file_path, 'r')
-        except IOError:
-            print('IO Error could not open file')
+            self.file = open(in_file_path, 'r')
+        except:
+            print('Could not open file ' + in_file_path)
 
         regex_ip_pattern = r'^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
         # retrieved from https://stackoverflow.com/questions/30956820/log-parsing-with-regex
         parsed_log = {}
-
         for line in self.file:
             matchobj = re.match(regex_ip_pattern, line, flags=0)
             # Creates a dictionary with the IP address as the key, and
@@ -91,6 +90,7 @@ class AnaPyzerAnalyzer:
                                                      [matchobj.group(8)], [matchobj.group(9)]]
         self.file.close()
         return parsed_log
+
 
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
     # and returns a list containing how many unique ip connections were present during each hour of the day
