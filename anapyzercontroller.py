@@ -132,7 +132,8 @@ class AnaPyzerController:
 
             # If we are in graph simultaneous connections
             elif graph_mode == GraphModes.SIMUL_CON:
-                self.view.display_graph_view()
+                #self.view.display_graph_view()
+                pass
 
         elif parse_mode == FileParseModes.REPORT:
             report_mode = self.model.get_report_mode()
