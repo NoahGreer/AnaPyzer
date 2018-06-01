@@ -1,3 +1,5 @@
+# Import the tkinter UI library
+import tkinter
 # Import the AnaPyzerModel class
 from anapyzermodel import AnaPyzerModel
 # Import the AnaPyzerView class
@@ -17,8 +19,13 @@ if __name__ == '__main__':
     analyzer = AnaPyzerAnalyzer()
     # Instantiate the main application model object
     model = AnaPyzerModel(parser, analyzer)
+
+    root = tkinter.Tk()
+    root.resizable(width=False, height=False)
+    # Set the title of the window
+    root.title("AnaPyzer")
     # Instantiate the main application view object
-    view = AnaPyzerView()
+    view = AnaPyzerView(root)
     # Instantiate the main application controller object
     controller = AnaPyzerController(model, view)
 
