@@ -1,7 +1,5 @@
 # Import the AnaPyzerModel class
 from anapyzermodel import *
-
-
 # Import the AnaPyzerView class
 # from anapyzerview import *
 # Import the pathlib library for cross platform file path abstraction
