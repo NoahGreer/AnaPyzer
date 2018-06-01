@@ -6,7 +6,6 @@ import pathlib
 import re
 #from anapyzeranalyzer import AnaPyzerAnalyzer
 
-#analyzer = AnaPyzerAnalyzer()
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
@@ -28,6 +27,7 @@ class FileParseModes(enum.Enum):
 
 class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
+    IP_CONNECTIONS = 'Connections by Country'
     # CON_PER_MIN = 'Connections per minute'
     SIMUL_CON = 'Simultaneous connections'
     DEFAULT = CON_PER_HOUR
@@ -58,6 +58,9 @@ class AnaPyzerModel:
         self._report_mode = ReportModes.DEFAULT
         self._error_listener = None
         self._success_listener = None
+        self._report_data = None
+        self._graph_data = None
+        self._file_path_has_changed = False
         self.analyzer = analyzer
         self.parser = parser
 
@@ -223,3 +226,120 @@ class AnaPyzerModel:
 
     def add_success_listener(self, listener):
         self._error_listener = listener
+
+    def set_report_data(self, log):
+        self._report_data = log
+
+    def set_graph_data(self, graph_data):
+        self._graph_data = graph_data
+
+    def set_file_changed(self, boolean):
+        self._file_path_has_changed = boolean
+
+    def get_parsed_log_file(self):
+        print("getting parsed data from log file")
+        log_file = open(self.get_in_file_path(), 'r')
+        if self.get_log_type() == AcceptedLogTypes.IIS:
+            print("parsing IIS")
+            parsed_log = self.parser.parse_w3c_to_list(log_file)
+        elif self.get_log_type() == AcceptedLogTypes.APACHE:
+            print("parsing Apache")
+            parsed_log = self.parser.parse_common_apache_to_list(log_file)
+        log_file.close()
+        print("closing log file")
+        if parsed_log is not None:
+            self.set_report_data(parsed_log)
+            return True
+        else:
+            print("nothing works")
+            return False
+
+
+
+    def create_graph_data(self):
+
+        if self._file_path_has_changed == True or self._report_data == None:
+            self.set_file_changed(False)
+            self.get_parsed_log_file()
+
+        if self.get_graph_mode() == GraphModes.CON_PER_HOUR:
+            graph_data = self.analyzer.get_connections_per_hour(self._report_data)
+            self.set_graph_data(graph_data)
+
+        elif self.get_graph_mode() == GraphModes.CON_PER_MINUTE:
+            graph_data = self.analyzer.get_connections_per_minute(self._report_data)
+            self.set_graph_data(graph_data)
+
+        elif self.get_graph_mode() == GraphModes.CON_BY_COUNTRY:
+            graph_data = self.analyzer.ip_connections_report(self._report_data)
+            self.set_graph_data(graph_data)
+
+    def print_current_graph_data(self):
+        for date in self._graph_data:
+            print(self._graph_data[date])
+
+    def print_current_report_data(self):
+        print("printing _report_data")
+        print(self._report_data)
+        if self._report_data['length'] > 0:
+            i = 0
+            while i < self._report_data['length']:
+                print(self._report_data[i])
+                i+=1
+
+    # get_graph_data_split will return an array of a dictionary's keys which contain
+    # values that are also dictionaries or arrays.
+    def get_graph_data_split(self):
+        split = []
+        for key in self._graph_data.keys():
+            if isinstance(self._graph_data[key], dict):
+                split.append(key)
+
+        return split
+
+    def get_graph_data_keys(self,date):
+        if self._graph_data.get(date):
+            return self._graph_data[date].keys()
+        else:
+            return None
+
+    def get_graph_data_values(self,date):
+        if self._graph_data.get(date):
+            return self._graph_data[date].values()
+        else:
+            return None
+
+    def get_graph_data_x_label(self):
+        if 'xlabel' in self._graph_data.keys():
+            return self._graph_data['xlabel']
+        else:
+            return 'X Axis'
+
+    def get_graph_data_y_label(self):
+        if 'ylabel' in self._graph_data.keys():
+            return self._graph_data['ylabel']
+        else:
+            return 'Y Axis'
+
+    def get_graph_data_title(self):
+        if self._graph_data.get('title'):
+            return self._graph_data['title']
+        else:
+            return 'Title'
+
+
+# @dataclass
+# class GraphData:
+#     """Class for creating graphable data from parsed files"""
+#     title: str
+#     x_axis: []
+#     y_axis: []
+#     x_label: str
+#     y_label: str
+#
+#     def __init__(self):
+#         self.title = "Title"
+#         self.x_axis = None
+#         self.y_axis = None
+#         self.x_label = "X LABEL"
+#         self.y_label = "Y LABEL"

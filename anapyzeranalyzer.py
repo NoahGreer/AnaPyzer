@@ -134,9 +134,9 @@ class AnaPyzerAnalyzer:
                 ip_count = len(set(connections_per_hour_table[date][time]))
                 connections_per_hour_table[date][time] = ip_count
 
-        # print("connections per hour report complete")
-        # for time in connections_per_hour_table:
-        #     print(str(connections_per_hour_table[time]) + " unique connections at "+ time)
+        connections_per_hour_table['xlabel'] = "Hour of Day"
+        connections_per_hour_table['ylabel'] = "Unique IPs Recorded"
+        connections_per_hour_table['title'] = "Connections Per Hour"
         return connections_per_hour_table
 
     # The plot_connections method take a log formatted by the get_connections_per_hour method
@@ -185,3 +185,81 @@ class AnaPyzerAnalyzer:
             for info in ip_connection_time[ip]:
                 print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: "
                       + str(info[1]))
+
+    @staticmethod
+    def lookup_ipv4(ip):
+
+        ip_split = ip.split(".")
+        ip_1 = ip_split[0]
+        ip_2 = int(ip_split[1])
+        ip_3 = int(ip_split[2])
+        ip_4 = int(ip_split[3])
+
+        filename = 'ips/ipv4' + ip_1 + ".csv"
+
+        with open(filename, 'r') as ip_db:
+            reader = csv.reader(ip_db)
+            ipv4 = list(reader)
+        ip_db.close()
+
+        # format of each line =
+        # [0] = starting limit ip_1 [1] = starting limit ip_2 [2] = starting limit ip_3  [3] =starting limit ip_4
+        # [4] = ending limit ip_1   [5] = ending limit ip_2   [6] = ending limit ip_3    [7] = ending limit ip_4
+        # [8]= Country Code
+        # for ip in ipv4:
+        #     if ip_2 >
+        i = 0
+
+        while int(ipv4[i][1]) <= ip_2:
+            # print(ipv4[i])
+            j = 0
+
+            if int(ipv4[i][1]) < ip_2 and int(ipv4[i][5]) > ip_2:
+
+                return ipv4[i][8]
+
+            elif int(ipv4[i][1]) == ip_2:
+
+                if int(ipv4[i][2]) < ip_3 and int(ipv4[i][6]) > ip_3:
+
+                    return ipv4[i][8]
+
+                elif int(ipv4[i][2]) == ip_3:
+
+                    if int(ipv4[i][3]) < ip_4 and int(ipv4[i][7] > ip_4):
+                        return ipv4[i][8]
+            i += 1
+
+    @staticmethod
+    def ip_connection_report(parsed_log):
+        ip_connections = {}
+
+        i = 0
+        date = parsed_log[i][parsed_log['date']]
+        ip_connections[date] = {}
+        while i < parsed_log['length']:
+            # iterate through the ip addresses recorded
+            if parsed_log[i][parsed_log['date']] != date:
+                date = parsed_log[i][parsed_log['date']]
+                ip_connections[date] = {}
+
+            time_string = str(parsed_log[i][parsed_log['timestamp']])
+            user_ip_address = str(parsed_log[i][parsed_log['client-ip']])
+
+            user_ip_address = lookup_ipv4(user_ip_address)
+
+            hours = time_string[:2]
+
+            if ip_connections[date].get(hours):
+                ip_connections[date][hours] += [user_ip_address]
+            else:
+                ip_connections[date][hours] = [user_ip_address]
+            i += 1
+
+        for date in ip_connections:
+            for time in ip_connections[date]:
+                ip_count = len(set(ip_connections[date][time]))
+                ip_connections[date][time] = ip_count
+                print(ip_connections[date][time])
+
+        return ip_connections

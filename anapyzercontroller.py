@@ -74,6 +74,7 @@ class AnaPyzerController:
 
         # Update the input file path to the one received from the user via the file dialog
         self.model.set_in_file_path(in_file_path)
+        self.model.set_file_changed(True)
         self.update_view()
 
     # Function for handling when the out file "Browse..." button is pressed
@@ -114,53 +115,25 @@ class AnaPyzerController:
             #  pass  # Do stuff here
         elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
             # If we are in graph connections per hour mode
-            if self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and \
-                    self.model.get_log_type() == AcceptedLogTypes.IIS:
-                # open log file specified in the model
-                log_file = open(self.model.get_in_file_path(), 'r')
-                try:
-                    connections_list = self.model.parser.parse_w3c_to_list(log_file)
-                except IOError:
-                    self.error_event_listener("Error encountered, did you select the correct log type?")
-                    return False
-                log_file.close()
-                if connections_list is None:
-                    self.view.display_error_message("Connections list unable to be parsed,"
-                                                    " please make sure file is IIS format.")
-                    return False
-                connections_per_hour_dict = self.model.analyzer.get_connections_per_hour(connections_list)
-                # self.analyzer.announce_connections(connections_per_hour_dict)
+            # print("parse mode = Graph, attempting to parse selected log")
+            # try:
+            #     self.model.get_parsed_log_file()
+            #
 
-                for date in connections_per_hour_dict:
-                    self.view.display_graph_view(connections_per_hour_dict[date].keys(),
-                                                 connections_per_hour_dict[date].values(),
-                                                 "Hour of Day", "Unique IPs Accessing", date)
-                self.model.analyzer.get_connection_length_report(connections_list)
+            print("attempting to create graph with parsed data")
+            try:
+                self.model.create_graph_data()
+            except:
+                self.view.display_error_message("Log could not be parsed.  Git gud.")
+                return False
 
-            elif self.model.get_graph_mode() == GraphModes.CON_PER_HOUR and \
-                    self.model.get_log_type() == AcceptedLogTypes.APACHE:
-                # self.success_event_listener(self.model.get_in_file_path())
-                log_file = open(self.model.get_in_file_path(), 'r')
-                try:
-                    connections_list = self.model.parser.parse_common_apache_to_list(log_file)
-                except IndexError:
-                    self.error_event_listener("IndexError encountered, did you select the correct log type?")
-                    return False
-                if connections_list is None:
-                    self.view.display_error_message("Connections list unable to be parsed,"
-                                                    " please make sure file is Apache format.")
-                    return False
-                connections_per_hour_dict = self.model.analyzer.get_connections_per_hour(connections_list)
-                # self.analyzer.announce_connections(connections_per_hour_dict)
-                for date in connections_per_hour_dict:
-                    self.view.display_graph_view(connections_per_hour_dict[date].keys(),
-                                                 connections_per_hour_dict[date].values(),
-                                                 "Hour of Day", "Unique IPs Accessing", date)
-                self.model.analyzer.get_connection_length_report(connections_list)
+            for value in self.model.get_graph_data_split():
+                self.view.display_graph_view(self.model.get_graph_data_keys(value), self.model.get_graph_data_values(value), self.model.get_graph_data_x_label(),self.model.get_graph_data_y_label() ,value)
+
 
             # If we are in graph simultaneous connections
-            elif self.model.get_graph_mode() == GraphModes.SIMUL_CON:
-                self.view.display_graph_view()
+        elif self.model.get_graph_mode() == GraphModes.SIMUL_CON:
+            self.view.display_graph_view()
 
     # Function for displaying an error message in the view
     def error_event_listener(self, message):
