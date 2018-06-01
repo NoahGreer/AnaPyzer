@@ -1,12 +1,5 @@
 # Import the AnaPyzerModel class
 from anapyzermodel import *
-# Import the AnaPyzerView class
-from anapyzerview import *
-# Import the pathlib library for cross platform file path abstraction
-import pathlib
-from anapyzerparser import *
-
-from anapyzeranalyzer import *
 
 # Class definition for the Controller part of the MVC design pattern
 class AnaPyzerController:
@@ -21,6 +14,13 @@ class AnaPyzerController:
         self.model.add_error_listener(self.error_event_listener)
         self.model.add_success_listener(self.success_event_listener)
 
+    # Start the application
+    def run(self):
+        self.init_view()
+        self.update_view()
+        self.view.mainloop()
+
+    def init_view(self):
         # Set the available options for the view's options menu
         self.view.set_log_type_options([log_type.value for log_type in AcceptedLogTypes])
         self.view.set_file_read_options([parse_mode.value for parse_mode in FileParseModes])
@@ -29,17 +29,12 @@ class AnaPyzerController:
         self.view.set_out_file_path(self.model.get_out_file_path())
 
         # Register listeners in the view
-        self.view.add_in_file_browse_button_clicked_listener(self.in_file_browse_button_clicked)
-        self.view.add_out_file_browse_button_clicked_listener(self.out_file_browse_button_clicked)
-        self.view.add_open_file_button_clicked_listener(self.open_file_button_clicked)
-        self.view.add_log_type_option_changed_listener(self.log_type_option_changed)
-        self.view.add_file_read_option_changed_listener(self.file_read_option_changed)
-        self.view.add_graph_mode_option_changed_listener(self.graph_mode_option_changed)
-
-    # Start the application
-    def run(self):
-        self.update_view()
-        self.view.mainloop()
+        self.view.set_in_file_browse_button_clicked_listener(self.in_file_browse_button_clicked)
+        self.view.set_out_file_browse_button_clicked_listener(self.out_file_browse_button_clicked)
+        self.view.set_open_file_button_clicked_listener(self.open_file_button_clicked)
+        self.view.set_log_type_option_changed_listener(self.log_type_option_changed)
+        self.view.set_file_read_option_changed_listener(self.file_read_option_changed)
+        self.view.set_graph_mode_option_changed_listener(self.graph_mode_option_changed)
 
     # Listener for when the log type option menu has an item selected
     def log_type_option_changed(self, value):
@@ -146,14 +141,14 @@ class AnaPyzerController:
         self.view.hide_out_file_path_widgets()
         self.view.disable_open_file_button()
 
-        if self.model.get_file_parse_mode() == FileParseModes.REPORT:
+        if self.model.get_file_parse_mode() == FileParseModes.GRAPH:
+            self.view.show_graph_mode_option_menu_widgets()
+            if self.model.in_file_path_is_valid():
+                self.view.enable_open_file_button()
+        elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
             if self.model.in_file_path_is_valid():
                 self.view.enable_open_file_button()
         elif self.model.get_file_parse_mode() == FileParseModes.CSV:
             self.view.show_out_file_path_widgets()
             if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
-                self.view.enable_open_file_button()
-        elif self.model.get_file_parse_mode() == FileParseModes.GRAPH:
-            self.view.show_graph_mode_option_menu_widgets()
-            if self.model.in_file_path_is_valid():
                 self.view.enable_open_file_button()
