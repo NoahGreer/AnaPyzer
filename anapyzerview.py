@@ -21,7 +21,7 @@ class AnaPyzerView(tkinter.ttk.Frame):
     WIDGET_X_PAD = 2
     WIDGET_Y_PAD = 2
     DEFAULT_ENTRY_WIDTH = 100
-    LABEL_WIDTH = 16
+    LABEL_WIDTH = 20
     DEFAULT_STICKY_DIRECTION = tkinter.W
     DEFAULT_FONT_SIZE = 12
 
@@ -83,7 +83,9 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._open_file_button = AnaPyzerView.Button(
             'Open',
             self)
-        self._open_file_button.grid()
+        self._open_file_button.grid(
+            padx=AnaPyzerView.WIDGET_X_PAD, pady=AnaPyzerView.WIDGET_Y_PAD,  # Give it the global widget padding
+        )
 
     # Method to tell the view to display an error message
     # Takes a string for the message to be displayed
