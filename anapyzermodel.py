@@ -230,54 +230,65 @@ class AnaPyzerModel:
     def set_report_data(self, log):
         self._report_data = log
 
+    # setter for self._graph_data
     def set_graph_data(self, graph_data):
         self._graph_data = graph_data
 
+    # setter for self._file_path_has_changed
     def set_file_changed(self, boolean):
         self._file_path_has_changed = boolean
 
+    # get_parsed_log_file opens the current in_file and attempts to parse it, determining the log type
+    # based on the current state of the UI
     def get_parsed_log_file(self):
-        print("getting parsed data from log file")
         log_file = open(self.get_in_file_path(), 'r')
         if self.get_log_type() == AcceptedLogTypes.IIS:
-            print("parsing IIS")
+            # print("parsing IIS")
             parsed_log = self.parser.parse_w3c_to_list(log_file)
         elif self.get_log_type() == AcceptedLogTypes.APACHE:
-            print("parsing Apache")
+            # print("parsing Apache")
             parsed_log = self.parser.parse_common_apache_to_list(log_file)
         log_file.close()
-        print("closing log file")
         if parsed_log is not None:
             self.set_report_data(parsed_log)
             return True
         else:
-            print("nothing works")
+            print("log unable to be parsed")
             return False
 
 
-
+    # create_graph_data attempts to extract graphable data from the current report_data dictionary
     def create_graph_data(self):
 
         if self._file_path_has_changed == True or self._report_data == None:
             self.set_file_changed(False)
-            self.get_parsed_log_file()
+            try:
+                self.get_parsed_log_file()
+            except:
+                return False
 
+        print(self.get_graph_mode())
         if self.get_graph_mode() == GraphModes.CON_PER_HOUR:
+            print("Creating Connections Per Hour Report")
             graph_data = self.analyzer.get_connections_per_hour(self._report_data)
+
+        elif self.get_graph_mode() == GraphModes.IP_CONNECTIONS:
+            print("Creating IP Connections Report")
+            graph_data = self.analyzer.ip_connection_report(self._report_data)
+
+        if graph_data is not None:
             self.set_graph_data(graph_data)
 
-        elif self.get_graph_mode() == GraphModes.CON_PER_MINUTE:
-            graph_data = self.analyzer.get_connections_per_minute(self._report_data)
-            self.set_graph_data(graph_data)
-
-        elif self.get_graph_mode() == GraphModes.CON_BY_COUNTRY:
-            graph_data = self.analyzer.ip_connections_report(self._report_data)
-            self.set_graph_data(graph_data)
-
-    def print_current_graph_data(self):
+    # print method for testing, outputs current delimited graph data to console
+    def print_current_graph_data_split(self):
         for date in self._graph_data:
             print(self._graph_data[date])
 
+    # print method for testing, outputs current graph data to console
+    def print_current_graph_data(self):
+        print(self._graph_data)
+
+    # print method for testing, outputs current report data to console
     def print_current_report_data(self):
         print("printing _report_data")
         print(self._report_data)
@@ -297,49 +308,52 @@ class AnaPyzerModel:
 
         return split
 
-    def get_graph_data_keys(self,date):
+    # getter method for graph data keys,
+    # used for data structures which contain a layer of abstraction
+    # such as each data set being separated by date
+    def get_graph_data_split_keys(self,date):
         if self._graph_data.get(date):
             return self._graph_data[date].keys()
         else:
             return None
 
-    def get_graph_data_values(self,date):
+    # getter method for graph data values,
+    # used for data structures which contain a layer of abstraction
+    # such as each data set being separated by date
+    def get_graph_data_split_values(self,date):
         if self._graph_data.get(date):
             return self._graph_data[date].values()
         else:
             return None
 
+    # getter method for graph keys
+    # used for graphing of non-delimited data (not seperated by date/time/etc)
+    def get_graph_data_keys(self):
+        return self._graph_data.keys()
+
+    # getter method for graph values
+    # used for graphing of non-delimited data (not seperated by date/time/etc)
+    def get_graph_data_values(self):
+        return self._graph_data.values()
+
+    # getter method for graph x label
     def get_graph_data_x_label(self):
         if 'xlabel' in self._graph_data.keys():
             return self._graph_data['xlabel']
         else:
             return 'X Axis'
 
+    # getter method for graph y label
     def get_graph_data_y_label(self):
         if 'ylabel' in self._graph_data.keys():
             return self._graph_data['ylabel']
         else:
             return 'Y Axis'
 
+    # getter method for graph title
     def get_graph_data_title(self):
         if self._graph_data.get('title'):
             return self._graph_data['title']
         else:
             return 'Title'
 
-
-# @dataclass
-# class GraphData:
-#     """Class for creating graphable data from parsed files"""
-#     title: str
-#     x_axis: []
-#     y_axis: []
-#     x_label: str
-#     y_label: str
-#
-#     def __init__(self):
-#         self.title = "Title"
-#         self.x_axis = None
-#         self.y_axis = None
-#         self.x_label = "X LABEL"
-#         self.y_label = "Y LABEL"

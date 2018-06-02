@@ -84,54 +84,36 @@ class AnaPyzerController:
     # Function for handling when the "Open" button is pressed
     def open_file_button_clicked(self):
         parse_mode = self.model.get_file_parse_mode()
+        graph_mode = self.model.get_graph_mode()
 
         if parse_mode == FileParseModes.GRAPH:
-            graph_mode = self.model.get_graph_mode()
-
-            # If we are in graph connections per hour mode
-            # print("parse mode = Graph, attempting to parse selected log")
-            # try:
-            #     self.model.get_parsed_log_file()
-            #
-
-            print("attempting to create graph with parsed data")
             try:
                 self.model.create_graph_data()
             except:
-                self.view.display_error_message("Log could not be parsed.  Git gud.")
+                self.view.display_error_message("Graph data cannot be created from parsed file.")
                 return False
 
-            for value in self.model.get_graph_data_split():
-                self.view.display_graph_view(self.model.get_graph_data_keys(value), self.model.get_graph_data_values(value), self.model.get_graph_data_x_label(),self.model.get_graph_data_y_label() ,value)
-
-
-            elif graph_mode == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.APACHE:
-                # self.success_event_listener(self.model.get_in_file_path())
-                log_file = open(self.model.get_in_file_path(), 'r')
-                try:
-                    connections_list = self.model.parser.parse_common_apache_to_list(log_file)
-                except IndexError:
-                    self.error_event_listener("IndexError encountered, did you select the correct log type?")
-                    return False
-                if connections_list is None:
-                    self.view.display_error_message("Connections list unable to be parsed,"
-                                                    " please make sure file is Apache format.")
-                    return False
-                connections_per_hour_dict = self.model.analyzer.get_connections_per_hour(connections_list)
-                # self.analyzer.announce_connections(connections_per_hour_dict)
-                for date in connections_per_hour_dict:
-                    self.view.display_graph_view(
-                        connections_per_hour_dict[date].keys(),
-                        connections_per_hour_dict[date].values(),
-                        "Hour of Day",
-                        "Unique IPs Accessing",
-                        date)
-                self.model.analyzer.get_connection_length_report(connections_list)
+            # model.get_graph_data_split will check whether the graph data is split by date/time/any other delimiter
+            # and allow multiple graphs to be created if it is
+            print(self.model.get_graph_data_split())
+            if len(self.model.get_graph_data_split()) > 0:
+                for value in self.model.get_graph_data_split():
+                    self.view.display_graph_view(self.model.get_graph_data_split_keys(value),
+                                                 self.model.get_graph_data_split_values(value),
+                                                 self.model.get_graph_data_x_label(),
+                                                 self.model.get_graph_data_y_label(),
+                                                 value)
+            else:
+                self.view.display_graph_view(self.model.get_graph_data_keys(),
+                                             self.model.get_graph_data_values(),
+                                             self.model.get_graph_data_x_label(),
+                                             self.model.get_graph_data_y_label(),
+                                             self.model.get_graph_data_title())
 
             # If we are in graph simultaneous connections
-            elif graph_mode == GraphModes.SIMUL_CON:
-                #self.view.display_graph_view()
-                pass
+        elif graph_mode == GraphModes.SIMUL_CON:
+            #self.view.display_graph_view()
+            pass
 
         elif parse_mode == FileParseModes.REPORT:
             report_mode = self.model.get_report_mode()

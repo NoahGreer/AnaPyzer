@@ -1,6 +1,7 @@
 # Import the re library to support regular expressions
 import re
 import pathlib
+import csv
 
 # The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
 # from logs created by AnaPyzerParser object methods.
@@ -13,6 +14,8 @@ class AnaPyzerAnalyzer:
         self.file = self._in_file_path
         self._error_listener = None
         self._success_listener = None
+        self._known_ips = {}
+
 
     @staticmethod
     def is_malicious(timestamps, urls):
@@ -127,6 +130,7 @@ class AnaPyzerAnalyzer:
                 connections_per_hour_table[date][hours] += [user_ip_address]
             else:
                 connections_per_hour_table[date][hours] = [user_ip_address]
+
             i += 1
 
         for date in connections_per_hour_table:
@@ -186,80 +190,122 @@ class AnaPyzerAnalyzer:
                 print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: "
                       + str(info[1]))
 
-    @staticmethod
-    def lookup_ipv4(ip):
+
+
+    def lookup_ipv4(self, ip):
 
         ip_split = ip.split(".")
-        ip_1 = ip_split[0]
-        ip_2 = int(ip_split[1])
-        ip_3 = int(ip_split[2])
-        ip_4 = int(ip_split[3])
+        try:
+            ip_1 = int(ip_split[0])
+            ip_2 = int(ip_split[1])
+            ip_3 = int(ip_split[2])
+            ip_4 = int(ip_split[3])
+        except ValueError:
+            self._known_ips[ip] = "INV"
+            return None
 
-        filename = 'ips/ipv4' + ip_1 + ".csv"
+        if ip_1 > 255 or ip_1 < 0:
+            self._known_ips[ip] = "INV"
+            return None
+        if ip_2 > 255 or ip_2 < 0:
+            self._known_ips[ip] = "INV"
+            return None
+        if ip_3 > 255 or ip_3 < 0:
+            self._known_ips[ip] = "INV"
+            return None
+        if ip_4 > 255 or ip_4 < 0:
+            self._known_ips[ip] = "INV"
+            return None
 
-        with open(filename, 'r') as ip_db:
-            reader = csv.reader(ip_db)
-            ipv4 = list(reader)
-        ip_db.close()
+        if self._known_ips.get(ip):
+            return self._known_ips[ip]
+        else:
+            filename = 'ips/ipv4' + str(ip_1) + ".csv"
 
-        # format of each line =
-        # [0] = starting limit ip_1 [1] = starting limit ip_2 [2] = starting limit ip_3  [3] =starting limit ip_4
-        # [4] = ending limit ip_1   [5] = ending limit ip_2   [6] = ending limit ip_3    [7] = ending limit ip_4
-        # [8]= Country Code
-        # for ip in ipv4:
-        #     if ip_2 >
-        i = 0
+            try:
+                with open(filename, 'r') as ip_db:
+                    reader = csv.reader(ip_db)
+                    ipv4 = list(reader)
+            except:
+                if ip_1 >= 225:
+                    return "ZZ"
+                else:
+                    return "INV"
+            ip_db.close()
 
-        while int(ipv4[i][1]) <= ip_2:
-            # print(ipv4[i])
-            j = 0
+            # format of each line =
+            # [0] = starting limit ip_1 [1] = starting limit ip_2 [2] = starting limit ip_3  [3] =starting limit ip_4
+            # [4] = ending limit ip_1   [5] = ending limit ip_2   [6] = ending limit ip_3    [7] = ending limit ip_4
+            # [8]= Country Code
 
-            if int(ipv4[i][1]) < ip_2 and int(ipv4[i][5]) > ip_2:
+            i = 0
+            # if the starting ip has a number less than the ending ip
+            # the entire range of ips starting with ip_1 belongs to the country code in [8]
 
+            if int(ipv4[i][0]) <= ip_1 and int(ipv4[i][4]) > ip_1:
+                self._known_ips[ip] = ipv4[i][8]
                 return ipv4[i][8]
 
-            elif int(ipv4[i][1]) == ip_2:
-
-                if int(ipv4[i][2]) < ip_3 and int(ipv4[i][6]) > ip_3:
-
+            while i < len(ipv4):
+                if int(ipv4[i][1]) <= ip_2 and int(ipv4[i][5]) > ip_2:
+                    self._known_ips[ip] = ipv4[i][8]
                     return ipv4[i][8]
 
-                elif int(ipv4[i][2]) == ip_3:
+                if int(ipv4[i][2]) <= ip_3 and int(ipv4[i][6]) > ip_3:
+                    self._known_ips[ip] = ipv4[i][8]
+                    return ipv4[i][8]
 
-                    if int(ipv4[i][3]) < ip_4 and int(ipv4[i][7] > ip_4):
-                        return ipv4[i][8]
-            i += 1
+                if int(ipv4[i][3]) <= ip_4 and int(ipv4[i][7]) > ip_4:
+                    self._known_ips[ip] = ipv4[i][8]
+                    return ipv4[i][8]
+                i += 1
+            # Just in case something doesn't work out, provide a default case of 'unknown'
+            self._known_ips[ip] = "INV"
+            return "INV"
 
-    @staticmethod
-    def ip_connection_report(parsed_log):
+    def ip_connection_report(self, parsed_log):
         ip_connections = {}
 
         i = 0
         date = parsed_log[i][parsed_log['date']]
         ip_connections[date] = {}
+        # iterate through data of each date recorded
         while i < parsed_log['length']:
             # iterate through the ip addresses recorded
             if parsed_log[i][parsed_log['date']] != date:
                 date = parsed_log[i][parsed_log['date']]
                 ip_connections[date] = {}
 
-            time_string = str(parsed_log[i][parsed_log['timestamp']])
             user_ip_address = str(parsed_log[i][parsed_log['client-ip']])
 
-            user_ip_address = lookup_ipv4(user_ip_address)
+            # ip_country_code = self.lookup_ipv4(user_ip_address)
 
-            hours = time_string[:2]
+            # if ip_country_code is not None:
+            #     if ip_connections[date].get(ip_country_code):
+            #         ip_connections[date][ip_country_code] += 1
+            #     else:
+            #         ip_connections[date][ip_country_code] = 1
 
-            if ip_connections[date].get(hours):
-                ip_connections[date][hours] += [user_ip_address]
+            if ip_connections[date].get(user_ip_address):
+                ip_connections[date][user_ip_address] += 1
             else:
-                ip_connections[date][hours] = [user_ip_address]
+                ip_connections[date][user_ip_address] = 1
+
+            print(ip_connections[date])
             i += 1
-
+        cc_report = {}
         for date in ip_connections:
-            for time in ip_connections[date]:
-                ip_count = len(set(ip_connections[date][time]))
-                ip_connections[date][time] = ip_count
-                print(ip_connections[date][time])
+            cc_report[date] = {}
+            for ip_address in ip_connections[date]:
+                ip_country_code = self.lookup_ipv4(ip_address)
+                if ip_country_code is not None:
+                    if cc_report[date].get(ip_country_code):
+                        cc_report[date][ip_country_code] += 1
+                    else:
+                        cc_report[date][ip_country_code] = 1
 
-        return ip_connections
+        cc_report['xlabel'] = "Country Code"
+        cc_report['ylabel'] = "Unique Connections"
+        cc_report['title'] = "Connections by Country"
+
+        return cc_report
