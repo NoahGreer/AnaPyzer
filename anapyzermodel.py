@@ -4,7 +4,7 @@ import enum
 import pathlib
 # Import the re library to support regular expressions
 import re
-#from anapyzeranalyzer import AnaPyzerAnalyzer
+
 
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
@@ -20,7 +20,7 @@ class AcceptedFileFormats(enum.Enum):
 
 class FileParseModes(enum.Enum):
     GRAPH = 'Generate graph'
-    REPORT = "Generate Report"
+    REPORT = 'Generate report'
     CSV = 'Convert to csv'
     DEFAULT = GRAPH
 
@@ -154,7 +154,7 @@ class AnaPyzerModel:
     def set_report_mode(self, report_mode):
         self._report_mode = ReportModes(report_mode)
 
-    # Getter for the type of graph to generate
+    # Getter for the type of report to generate
     def get_report_mode(self):
         return self._report_mode
 
