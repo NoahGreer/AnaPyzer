@@ -2,6 +2,8 @@
 import tkinter
 # Import the tkinter themed UI library
 import tkinter.ttk
+# Import the tkinter font library
+import tkinter.font
 # Import the filedialog subclass to allow the user to graphically select a log file
 import tkinter.filedialog
 # Import the tkMessageBox subclass to allow showing system error messages
@@ -35,13 +37,6 @@ class AnaPyzerView(tkinter.ttk.Frame):
         # Set the geometry manager for the main window to use the grid layout
         self.grid()
 
-        # Initialize view instance variables to update the view objects with
-        self._log_type_choice = tkinter.StringVar()
-        self._in_file_path = tkinter.StringVar()
-        self._out_file_path = tkinter.StringVar()
-        self._file_read_choice = tkinter.StringVar()
-        self._graph_mode_choice = tkinter.StringVar()
-
         # Tell the view to create the widgets and populate the window with them
         self._create_widgets()
 
@@ -51,32 +46,44 @@ class AnaPyzerView(tkinter.ttk.Frame):
         self._log_type_menu_widgets = AnaPyzerView.OptionMenuWidgetGroup(
             'Choose log type',
             self)
+        self._log_type_menu_widgets.grid(sticky=AnaPyzerView.DEFAULT_STICKY_DIRECTION)
+
         # Create the widgets for the input file path
         self._in_file_path_field_widgets = AnaPyzerView.FilePathWidgetGroup(
             'Choose input file path',
             'Browse...',
             self)
+        self._in_file_path_field_widgets.grid(sticky=AnaPyzerView.DEFAULT_STICKY_DIRECTION)
+
         # Create the widgets for the file read options menu
         self._file_read_option_menu_widgets = AnaPyzerView.OptionMenuWidgetGroup(
             'Choose file read mode',
             self)
+        self._file_read_option_menu_widgets.grid(sticky=AnaPyzerView.DEFAULT_STICKY_DIRECTION)
+
         # Create the widgets for the graph mode options menu
         self._graph_mode_option_menu_widgets = AnaPyzerView.OptionMenuWidgetGroup(
             'Choose graph mode',
             self)
+        self._graph_mode_option_menu_widgets.grid(sticky=AnaPyzerView.DEFAULT_STICKY_DIRECTION)
+
         # Create the widgets for the report mode options menu
         self._report_mode_option_menu_widgets = AnaPyzerView.OptionMenuWidgetGroup(
             'Choose report mode',
             self)
+        self._report_mode_option_menu_widgets.grid(sticky=AnaPyzerView.DEFAULT_STICKY_DIRECTION)
+
         # Create the widgets for the output file path
         self._out_file_path_field_widgets = AnaPyzerView.FilePathWidgetGroup(
             'Choose output file path',
             'Browse...',
             self)
+        self._out_file_path_field_widgets.grid(sticky=AnaPyzerView.DEFAULT_STICKY_DIRECTION)
         # Create a Button object to open the file specified in the file_path_field entry box
         self._open_file_button = AnaPyzerView.Button(
             'Open',
             self)
+        self._open_file_button.grid()
 
     # Method to tell the view to display an error message
     # Takes a string for the message to be displayed
@@ -204,7 +211,6 @@ class AnaPyzerView(tkinter.ttk.Frame):
     class OptionMenuWidgetGroup(tkinter.ttk.Frame):
         def __init__(self, label_text, master=None):
             tkinter.ttk.Frame.__init__(self, master)
-            self.grid(sticky=AnaPyzerView.DEFAULT_STICKY_DIRECTION)
 
             self._menu_selection = tkinter.StringVar()
             self._menu_selection_changed_action = None
@@ -244,7 +250,6 @@ class AnaPyzerView(tkinter.ttk.Frame):
     class FilePathWidgetGroup(tkinter.ttk.Frame):
         def __init__(self, label_text, button_text, master=None):
             tkinter.ttk.Frame.__init__(self, master)
-            self.grid(sticky=AnaPyzerView.DEFAULT_STICKY_DIRECTION)
 
             self._file_path = tkinter.StringVar()
             self._button_clicked_action = None
@@ -296,7 +301,6 @@ class AnaPyzerView(tkinter.ttk.Frame):
                 master,
                 text=button_text,
                 command=self._on_button_clicked_action)
-            self.grid()
 
             self._button_clicked_action = None
 
