@@ -274,7 +274,7 @@ class AnaPyzerAnalyzer:
             else:
                 ip_connections[date][user_ip_address] = 1
 
-            print(ip_connections[date])
+            #print(ip_connections[date])
             i += 1
         cc_report = {}
         for date in ip_connections:
