@@ -126,7 +126,7 @@ class AnaPyzerController:
                                                  self.model.get_graph_data_y_label(),
                                                  value)
             else:
-                self.view.display_graph_view(self.model.get_graph_data_keys,
+                self.view.display_graph_view(self.model.get_graph_data_keys(),
                                              self.model.get_graph_data_values(),
                                              self.model.get_graph_data_x_label(),
                                              self.model.get_graph_data_y_label(),
