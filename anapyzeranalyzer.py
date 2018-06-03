@@ -5,94 +5,78 @@ import csv
 
 # The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
 # from logs created by AnaPyzerParser object methods.
-
-
 class AnaPyzerAnalyzer:
     def __init__(self):
-        self.DEFAULT_FILE_PATH = pathlib.Path.home()
-        self._in_file_path = pathlib.Path('')
-        self.file = self._in_file_path
-        self._error_listener = None
-        self._success_listener = None
         self._known_ips = {}
 
-
     @staticmethod
-    def is_malicious(timestamps, urls):
-        malicious = False
-        attempts = 0
-        counter = 0
-        current_timestamp = 0
-        current_url = 1
-        for timestamp in timestamps:
-            temp = ""
-            for c in timestamp:
-                if c.isdigit():
-                    temp += c
-            timestamps[timestamps.index(timestamp)] = temp
-        timestamps.sort()
-        urls.sort()
-        for url in urls:
-            try:
-                if url == urls[current_url]:
-                    malicious = True
-                    attempts += 1
-                    current_url += 1
-                else:
-                    current_url += 1
+    def malicious_activity_report(parsed_log):
+        ip_address_log_info_dict = {}
 
-            except IndexError:
-                break
-        if attempts > 0:
-            attempts += 1
-        for timestamp in timestamps:
-            if (int(timestamp) - int(timestamps[
-                                         current_timestamp])) < 11:  # go forward looking for timestamps within 10 secs
-                counter += 1
+        for entry in range(0, parsed_log['length']):
+            log_entry_ip = parsed_log[entry][parsed_log['client-ip']]
+            if log_entry_ip in ip_address_log_info_dict:
+                ip_address_log_info_dict[log_entry_ip]['dates'].append(parsed_log[entry][parsed_log['date']])
+                ip_address_log_info_dict[log_entry_ip]['timestamps'].append(parsed_log[entry][parsed_log['timestamp']])
+                ip_address_log_info_dict[log_entry_ip]['urls'].append(parsed_log[entry][parsed_log['uri-stem']])
             else:
-                current_timestamp = timestamps.index(timestamp)
-                counter = 0
-                for i in range(1, 10):
-                    try:
-                        if (int(timestamps[current_timestamp]) - int(timestamps[current_timestamp - i])) < 11:
-                            counter += 1
-                    except IndexError:
-                        break
-            if counter > 100:
-                malicious = True
-        return malicious
+                ip_address_log_info_dict[log_entry_ip] = {
+                    'dates': [parsed_log[entry][parsed_log['date']]],
+                    'timestamps': [parsed_log[entry][parsed_log['timestamp']]],
+                    'urls': [parsed_log[entry][parsed_log['uri-stem']]]
+                }
+        report_output = ""
 
-    def parse_apache(self, in_file_path):
-        try:
-            self.file = open(in_file_path, 'r')
-        except:
-            print('Could not open file ' + in_file_path)
+        for ip in ip_address_log_info_dict:
 
-        regex_ip_pattern = r'^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S+)?\s*" (\d{3}) (\S+)'
-        # retrieved from https://stackoverflow.com/questions/30956820/log-parsing-with-regex
-        parsed_log = {}
-        for line in self.file:
-            matchobj = re.match(regex_ip_pattern, line, flags=0)
-            # Creates a dictionary with the IP address as the key, and
-            # a list of lists pertaining to the 8 other groups as the value
-            # Group 1 is the ip address
-            # for our purposes, i believe only group 1, 4, 6 are necessary
-            if matchobj:
-                if parsed_log.get(matchobj.group(1)):
-                    parsed_log[matchobj.group(1)][0].append(matchobj.group(2))  # Client Identity
-                    parsed_log[matchobj.group(1)][1].append(matchobj.group(3))  # user ID
-                    parsed_log[matchobj.group(1)][2].append(matchobj.group(4))  # date and time
-                    parsed_log[matchobj.group(1)][3].append(matchobj.group(5))  # method
-                    parsed_log[matchobj.group(1)][4].append(matchobj.group(6))  # endpoint (url)
-                    parsed_log[matchobj.group(1)][5].append(matchobj.group(7))  # protocol
-                    parsed_log[matchobj.group(1)][6].append(matchobj.group(8))  # response code
-                    parsed_log[matchobj.group(1)][7].append(matchobj.group(9))  # content size
-                else:  # some of these groups are often blank
-                    parsed_log[matchobj.group(1)] = [[matchobj.group(2)], [matchobj.group(3)], [matchobj.group(4)],
-                                                     [matchobj.group(5)], [matchobj.group(6)], [], [matchobj.group(7)],
-                                                     [matchobj.group(8)], [matchobj.group(9)]]
-        self.file.close()
-        return parsed_log
+            malicious = False
+            attempts = 0
+            counter = 0
+            current_timestamp = 0
+            current_url = 1
+
+            timestamps = ip_address_log_info_dict[ip]['timestamps']
+            urls = ip_address_log_info_dict[ip]['urls']
+
+            for timestamp in timestamps:
+                temp = ""
+                for c in timestamp:
+                    if c.isdigit():
+                        temp += c
+                timestamps[timestamps.index(timestamp)] = temp
+            timestamps.sort()
+            urls.sort()
+            for url in urls:
+                try:
+                    if url == urls[current_url]:
+                        malicious = True
+                        attempts += 1
+                        current_url += 1
+                    else:
+                        current_url += 1
+
+                except IndexError:
+                    break
+            if attempts > 0:
+                attempts += 1
+            for timestamp in timestamps:
+                if (int(timestamp) - int(timestamps[
+                                             current_timestamp])) < 11:  # go forward looking for timestamps within 10 secs
+                    counter += 1
+                else:
+                    current_timestamp = timestamps.index(timestamp)
+                    counter = 0
+                    for i in range(1, 10):
+                        try:
+                            if (int(timestamps[current_timestamp]) - int(timestamps[current_timestamp - i])) < 11:
+                                counter += 1
+                        except IndexError:
+                            break
+                if counter > 100:
+                    malicious = True
+            report_output += "Malicious activity detected from " + ip + "\n\n"
+
+        return report_output
 
 
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
@@ -191,8 +175,7 @@ class AnaPyzerAnalyzer:
                       + str(info[1]))
 
 
-
-    def lookup_ipv4(self, ip):
+    def _lookup_ipv4(self, ip):
 
         ip_split = ip.split(".")
         try:
@@ -291,13 +274,13 @@ class AnaPyzerAnalyzer:
             else:
                 ip_connections[date][user_ip_address] = 1
 
-            print(ip_connections[date])
+            #print(ip_connections[date])
             i += 1
         cc_report = {}
         for date in ip_connections:
             cc_report[date] = {}
             for ip_address in ip_connections[date]:
-                ip_country_code = self.lookup_ipv4(ip_address)
+                ip_country_code = self._lookup_ipv4(ip_address)
                 if ip_country_code is not None:
                     if cc_report[date].get(ip_country_code):
                         cc_report[date][ip_country_code] += 1
