@@ -137,11 +137,10 @@ class AnaPyzerParser:
                         j += 1
             else:
                 if log_data['fields'] == -1:
-                    return None
+                    raise IndexError()
                 # print(split_line[log_data['c-ip']])
                 log_data[i] = split_line
                 i += 1
-        # close the file once you're done getting all of the line information
         # once log file is parsed, assign the new positions of each requested parameter in the log_data list
         # this will prevent issues when using methods that rely on tagged element values representing element
         #  placement in array

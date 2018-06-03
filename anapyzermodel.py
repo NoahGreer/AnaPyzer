@@ -196,6 +196,7 @@ class AnaPyzerModel:
             pass
         elif self._report_mode == ReportModes.SUSP_ACT:
             self._report_data = self._analyzer.malicious_activity_report(self._parsed_log_data)
+            print(self._report_data)
 
     def get_report_data(self):
         return self._report_data
@@ -217,12 +218,19 @@ class AnaPyzerModel:
                 log_file = open(self.get_in_file_path(), 'r')
                 if self._log_type == AcceptedLogTypes.IIS:
                     # print("parsing IIS")
-                    parsed_log = self._parser.parse_w3c_to_list(log_file)
+                    try:
+                        parsed_log = self._parser.parse_w3c_to_list(log_file)
+                    except IndexError as e:
+                        raise AnaPyzerModelError("Log file does not appear to be in IIS / W3C log format")
                 elif self._log_type == AcceptedLogTypes.APACHE:
                     # print("parsing Apache")
-                    parsed_log = self._parser.parse_common_apache_to_list(log_file)
+                    try:
+                        parsed_log = self._parser.parse_common_apache_to_list(log_file)
+                    except IndexError as e:
+                        raise AnaPyzerModelError("Log file does not appear to be in Apache / Common log format")
             except IOError as e:
                 raise AnaPyzerModelError("Could not read from " + e.filename + "\n" + e.strerror)
+
             log_file.close()
 
             if parsed_log is not None:
