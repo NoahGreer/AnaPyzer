@@ -13,11 +13,19 @@ class AcceptedLogTypes(enum.Enum):
     DEFAULT = APACHE
 
 
+# Enumeration for the accepted file formats
 class AcceptedFileFormats(enum.Enum):
     LOG = ('log files', '*.log')
     DEFAULT = LOG
 
 
+# Enumeration for the output file formats
+class OutputFileFormats(enum.Enum):
+    CSV = ('CSV (Comma delimited)', '*.csv')
+    DEFAULT = CSV
+
+
+# Enumeration for the file parse modes
 class FileParseModes(enum.Enum):
     GRAPH = 'Generate graph'
     REPORT = 'Generate report'
@@ -25,6 +33,7 @@ class FileParseModes(enum.Enum):
     DEFAULT = GRAPH
 
 
+# Enumeration for the graph output modes
 class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
     IP_CONNECTIONS = 'Connections by Country'
@@ -33,15 +42,11 @@ class GraphModes(enum.Enum):
     DEFAULT = CON_PER_HOUR
 
 
+# Enumeration for the report output modes
 class ReportModes(enum.Enum):
     URL_RPT = 'Website pages'
     SUSP_ACT = 'Suspicious activity report'
     DEFAULT = SUSP_ACT
-
-
-class OutputFileFormats(enum.Enum):
-    CSV = ('CSV (Comma delimited)', '*.csv')
-    DEFAULT = CSV
 
 
 # Class definition for the file reader of the application
@@ -200,6 +205,7 @@ class AnaPyzerModel:
             parsed_log = self.analyzer.parse_apache(self._in_file_path)
         elif self.get_log_type() == AcceptedLogTypes.IIS:
             pass
+        
         for key in parsed_log:
             if self.analyzer.is_malicious(parsed_log[key][2], parsed_log[key][4]):
                 out_file.write("Malicious activity detected from " + key + "\n\n")
