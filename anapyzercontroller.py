@@ -10,9 +10,6 @@ class AnaPyzerController:
         self.model = model
         # Set the controller's reference to the application view object
         self.view = view
-        # Register listeners in the model
-        self.model.add_error_listener(self.error_event_listener)
-        self.model.add_success_listener(self.success_event_listener)
 
     # Start the application
     def run(self):
@@ -94,7 +91,6 @@ class AnaPyzerController:
 
         # Update the input file path to the one received from the user via the file dialog
         self.model.set_in_file_path(in_file_path)
-        self.model.set_file_changed(True)
         self.update_view()
 
     # Function for handling when the out file "Browse..." button is pressed
@@ -115,8 +111,8 @@ class AnaPyzerController:
         if parse_mode == FileParseModes.GRAPH:
             try:
                 self.model.create_graph_data()
-            except:
-                self.view.display_error_message("Graph data cannot be created from parsed file.")
+            except AnaPyzerModelError as e:
+                self._on_error(e.message)
                 return False
 
             # model.get_graph_data_split will check whether the graph data is split by date/time/any other delimiter
@@ -130,44 +126,30 @@ class AnaPyzerController:
                                                  self.model.get_graph_data_y_label(),
                                                  value)
             else:
-                self.view.display_graph_view(self.model.get_graph_data_keys(),
+                self.view.display_graph_view(self.model.get_graph_data_keys,
                                              self.model.get_graph_data_values(),
                                              self.model.get_graph_data_x_label(),
                                              self.model.get_graph_data_y_label(),
                                              self.model.get_graph_data_title())
 
         elif parse_mode == FileParseModes.REPORT:
-            report_mode = self.model.get_report_mode()
-
-            if report_mode == ReportModes.URL_RPT:
-                pass #Do stuff here
-            elif report_mode == ReportModes.SUSP_ACT:
-                if self.model.get_log_type() == AcceptedLogTypes.IIS:
-                    # open log file specified in the model
-                    log_file = open(self.model.get_in_file_path(), 'r')
-                    try:
-                        connections_list = self.model.parser.parse_w3c_to_list(log_file)
-                    except IOError:
-                        self.error_event_listener("Error encountered, did you select the correct log type?")
-                        return False
-                    log_file.close()
-                    if connections_list is None:
-                        self.view.display_error_message("Connections list unable to be parsed,"
-                                                        " please make sure file is IIS format.")
-                        return False
-                    else:
-                        self.success_event_listener("Report successfully generated")
-                #  suspicious_activity_report = self.model.analyzer.get_suspicious_activity_report(suspicious_activity)
-                #  pass  # Do stuff here
+            try:
+                if self.model.create_report_data():
+                    self._on_success("Report generated successfully")
+            except AnaPyzerModelError as e:
+                self._on_error(e.message)
 
         elif parse_mode == FileParseModes.CSV:
-            if self.model.read_file_to_csv():
-                self.success_event_listener("Converted to csv successfully.")
+            try:
+                if self.model.convert_file_to_csv():
+                    self._on_success("Converted to csv successfully.")
+            except AnaPyzerModelError as e:
+                self._on_error(e.message)
 
-    # Function for displaying an error message in the view
-    def error_event_listener(self, message):
+    # Method to call when an error occurs
+    def _on_error(self, message):
         self.view.display_error_message(message)
 
-    # Function for displaying a success message in the view
-    def success_event_listener(self, message):
+    # Method to call when an action completed successfully
+    def _on_success(self, message):
         self.view.display_success_message(message)
