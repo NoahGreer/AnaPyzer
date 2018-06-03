@@ -20,6 +20,7 @@ class AnaPyzerController:
         self.update_view()
         self.view.mainloop()
 
+    # Function for initializing the view with values from the model and registering listeners
     def init_view(self):
         # Set the available options for the view's options menu
         self.view.set_log_type_options([log_type.value for log_type in AcceptedLogTypes])
@@ -38,6 +39,32 @@ class AnaPyzerController:
         self.view.set_graph_mode_option_changed_listener(self.graph_mode_option_changed)
         self.view.set_report_mode_option_changed_listener(self.report_mode_option_changed)
 
+    # Function for updating the state of the view based on what has been set in the model
+    def update_view(self):
+        # Set the input and output file paths to those set in the model
+        self.view.set_in_file_path(str(self.model.get_in_file_path()))
+        self.view.set_out_file_path(str(self.model.get_out_file_path()))
+
+        # Hide all optional widgets by default
+        self.view.hide_graph_mode_option_menu_widgets()
+        self.view.hide_report_mode_option_menu_widgets()
+        self.view.hide_out_file_path_widgets()
+        self.view.disable_open_file_button()
+
+        # Show only the widgets that pertain to the current parse mode
+        if self.model.get_file_parse_mode() == FileParseModes.GRAPH:
+            self.view.show_graph_mode_option_menu_widgets()
+            if self.model.in_file_path_is_valid():
+                self.view.enable_open_file_button()
+        elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
+            self.view.show_report_mode_option_menu_widgets()
+            if self.model.in_file_path_is_valid():
+                self.view.enable_open_file_button()
+        elif self.model.get_file_parse_mode() == FileParseModes.CSV:
+            self.view.show_out_file_path_widgets()
+            if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
+                self.view.enable_open_file_button()
+        
     # Listener for when the log type option menu has an item selected
     def log_type_option_changed(self, value):
         self.model.set_log_type(value)
@@ -67,6 +94,7 @@ class AnaPyzerController:
 
         # Update the input file path to the one received from the user via the file dialog
         self.model.set_in_file_path(in_file_path)
+        self.model.set_file_changed(True)
         self.update_view()
 
     # Function for handling when the out file "Browse..." button is pressed
@@ -85,59 +113,28 @@ class AnaPyzerController:
         parse_mode = self.model.get_file_parse_mode()
 
         if parse_mode == FileParseModes.GRAPH:
-            graph_mode = self.model.get_graph_mode()
+            try:
+                self.model.create_graph_data()
+            except:
+                self.view.display_error_message("Graph data cannot be created from parsed file.")
+                return False
 
-            # If we are in graph connections per hour mode
-            if graph_mode == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.IIS:
-                # open log file specified in the model
-                log_file = open(self.model.get_in_file_path(), 'r')
-                try:
-                    connections_list = self.model.parser.parse_w3c_to_list(log_file)
-                except IOError:
-                    self.error_event_listener("Error encountered, did you select the correct log type?")
-                    return False
-                log_file.close()
-                if connections_list is None:
-                    self.view.display_error_message("Connections list unable to be parsed,"
-                                                    " please make sure file is IIS format.")
-                    return False
-                connections_per_hour_dict = self.model.analyzer.get_connections_per_hour(connections_list)
-                # self.analyzer.announce_connections(connections_per_hour_dict)
-
-                for date in connections_per_hour_dict:
-                    self.view.display_graph_view(connections_per_hour_dict[date].keys(),
-                                                 connections_per_hour_dict[date].values(),
-                                                 "Hour of Day", "Unique IPs Accessing", date)
-                self.model.analyzer.get_connection_length_report(connections_list)
-
-
-            elif graph_mode == GraphModes.CON_PER_HOUR and self.model.get_log_type() == AcceptedLogTypes.APACHE:
-                # self.success_event_listener(self.model.get_in_file_path())
-                log_file = open(self.model.get_in_file_path(), 'r')
-                try:
-                    connections_list = self.model.parser.parse_common_apache_to_list(log_file)
-                except IndexError:
-                    self.error_event_listener("IndexError encountered, did you select the correct log type?")
-                    return False
-                if connections_list is None:
-                    self.view.display_error_message("Connections list unable to be parsed,"
-                                                    " please make sure file is Apache format.")
-                    return False
-                connections_per_hour_dict = self.model.analyzer.get_connections_per_hour(connections_list)
-                # self.analyzer.announce_connections(connections_per_hour_dict)
-                for date in connections_per_hour_dict:
-                    self.view.display_graph_view(
-                        connections_per_hour_dict[date].keys(),
-                        connections_per_hour_dict[date].values(),
-                        "Hour of Day",
-                        "Unique IPs Accessing",
-                        date)
-                self.model.analyzer.get_connection_length_report(connections_list)
-
-            # If we are in graph simultaneous connections
-            elif graph_mode == GraphModes.SIMUL_CON:
-                #self.view.display_graph_view()
-                pass
+            # model.get_graph_data_split will check whether the graph data is split by date/time/any other delimiter
+            # and allow multiple graphs to be created if it is
+            # print(self.model.get_graph_data_split())
+            if len(self.model.get_graph_data_split()) > 0:
+                for value in self.model.get_graph_data_split():
+                    self.view.display_graph_view(self.model.get_graph_data_split_keys(value),
+                                                 self.model.get_graph_data_split_values(value),
+                                                 self.model.get_graph_data_x_label(),
+                                                 self.model.get_graph_data_y_label(),
+                                                 value)
+            else:
+                self.view.display_graph_view(self.model.get_graph_data_keys(),
+                                             self.model.get_graph_data_values(),
+                                             self.model.get_graph_data_x_label(),
+                                             self.model.get_graph_data_y_label(),
+                                             self.model.get_graph_data_title())
 
         elif parse_mode == FileParseModes.REPORT:
             report_mode = self.model.get_report_mode()
@@ -174,29 +171,3 @@ class AnaPyzerController:
     # Function for displaying a success message in the view
     def success_event_listener(self, message):
         self.view.display_success_message(message)
-
-    # Function for updating the state of the view based on what has been set in the model
-    def update_view(self):
-        # Set the input and output file paths to those set in the model
-        self.view.set_in_file_path(str(self.model.get_in_file_path()))
-        self.view.set_out_file_path(str(self.model.get_out_file_path()))
-
-        # Hide all optional widgets by default
-        self.view.hide_graph_mode_option_menu_widgets()
-        self.view.hide_report_mode_option_menu_widgets()
-        self.view.hide_out_file_path_widgets()
-        self.view.disable_open_file_button()
-
-        # Show only the widgets that pertain to the current parse mode
-        if self.model.get_file_parse_mode() == FileParseModes.GRAPH:
-            self.view.show_graph_mode_option_menu_widgets()
-            if self.model.in_file_path_is_valid():
-                self.view.enable_open_file_button()
-        elif self.model.get_file_parse_mode() == FileParseModes.REPORT:
-            self.view.show_report_mode_option_menu_widgets()
-            if self.model.in_file_path_is_valid():
-                self.view.enable_open_file_button()
-        elif self.model.get_file_parse_mode() == FileParseModes.CSV:
-            self.view.show_out_file_path_widgets()
-            if self.model.in_file_path_is_valid() and self.model.out_file_path_is_valid():
-                self.view.enable_open_file_button()
