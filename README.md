@@ -6,10 +6,10 @@ This is Group 2's IT Project for CSD 299 Spring 2018
 
 ## Authors
 
-* **Noah Greer**
 * **Daniel Estes**
 * **Michael Langley**
 * **Nathan O'Brien**
+* **Noah Greer**
 
 See also the list of [contributors](https://github.com/NoahGreer/AnaPyzer/contributors) who participated in this project.
 
@@ -23,4 +23,7 @@ See also the list of [contributors](https://github.com/NoahGreer/AnaPyzer/contri
 # TODO
 
 ## Tests
-# TODO
+Tests are stored in the 'tests' subfolder and can be run by executing the following from the project root directory:
+```python
+python -m unittest discover tests
+```
