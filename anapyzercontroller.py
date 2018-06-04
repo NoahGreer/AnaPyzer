@@ -138,6 +138,7 @@ class AnaPyzerController:
                     self._on_success("Report generated successfully")
             except AnaPyzerModelError as e:
                 self._on_error(e.message)
+            self.model.get_report_data()
 
         elif parse_mode == FileParseModes.CSV:
             try:

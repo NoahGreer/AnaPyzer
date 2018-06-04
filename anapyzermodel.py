@@ -129,7 +129,7 @@ class AnaPyzerModel:
         out_file_path = pathlib.PurePath(self._out_file_path)
         out_file_path_parent = pathlib.Path(str(out_file_path.parent))
 
-        if self.get_out_file_path() != '' and out_file_path_parent.is_dir():
+        if self._out_file_path is not '' and out_file_path_parent.is_dir():
             is_valid = True
 
         return is_valid
