@@ -101,8 +101,13 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
     # Method to create a new graph view from x and y plot data
     def display_graph_view(self, x_data, y_data, x_label, y_label, title):
-        self.graph_view = AnaPyzerView.GraphView(self)
-        self.graph_view.configure_graph(x_data, y_data, x_label, y_label, title)
+        self._graph_view = AnaPyzerView.GraphView(self)
+        self._graph_view.configure_graph(x_data, y_data, x_label, y_label, title)
+
+    # Method to create a new graph view from x and y plot data
+    def display_report_view(self, report_text):
+        self._report_view = AnaPyzerView.ReportView(self)
+        self._report_view.set_text(report_text)
 
     # Method to tell the view to prompt the user to select a file
     # Takes a string for the starting directory,
@@ -345,3 +350,27 @@ class AnaPyzerView(tkinter.ttk.Frame):
             self._axes.set_ylabel(y_label)
             self._figure.legend(title=title)
             self._canvas.draw()
+
+    # Class definition for the Report View child window class
+    # Extends the tkinter.ttk.Frame object
+    class ReportView(tkinter.Toplevel):
+        def __init__(self, master=None):
+            # Call the tkinter ttk Toplevel base class constructor
+            tkinter.Toplevel.__init__(self, master)
+
+            # Set the title of the window
+            self.title("AnaPyzer Report View")
+
+            # Create a ScrolledText object to open the file specified in the  entry box
+            self._text_box = tkinter.Text(self) # Make it a child of the main window object
+            self._text_box.pack(side=tkinter.LEFT)
+
+            self._text_box_scrollbar = tkinter.ttk.Scrollbar(self, command=self._text_box.yview)
+            self._text_box_scrollbar.pack(side=tkinter.LEFT, fill=tkinter.Y)
+            self._text_box.config(yscrollcommand=self._text_box_scrollbar.set)
+
+        def set_text(self, text):
+            # Clear the text field
+            self._text_box.delete(1.0, tkinter.END)
+            # Insert the new text in the text field
+            self._text_box.insert(tkinter.END, text)

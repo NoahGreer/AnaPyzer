@@ -196,7 +196,6 @@ class AnaPyzerModel:
             pass
         elif self._report_mode == ReportModes.SUSP_ACT:
             self._report_data = self._analyzer.malicious_activity_report(self._parsed_log_data)
-            print(self._report_data)
 
     def get_report_data(self):
         return self._report_data
