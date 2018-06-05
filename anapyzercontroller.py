@@ -137,6 +137,7 @@ class AnaPyzerController:
                 self.model.create_report_data()
             except AnaPyzerModelError as e:
                 self._on_error(e.message)
+                return False
 
             self.view.display_report_view(self.model.get_report_data())
 
@@ -147,6 +148,7 @@ class AnaPyzerController:
                     self._on_success("Converted to csv successfully.")
             except AnaPyzerModelError as e:
                 self._on_error(e.message)
+                return False
 
     # Method to call when an error occurs
     def _on_error(self, message):

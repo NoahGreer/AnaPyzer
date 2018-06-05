@@ -137,6 +137,7 @@ class AnaPyzerModel:
     # Setter for the type of input log file that will be read
     def set_log_type(self, log_type):
         self._log_type = AcceptedLogTypes(log_type)
+        self._in_file_path_has_changed = True
 
     # Getter for the model's file type for the expected input log type
     # Returns a string representing the expected input log type
