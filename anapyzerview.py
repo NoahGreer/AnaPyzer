@@ -363,10 +363,10 @@ class AnaPyzerView(tkinter.ttk.Frame):
 
             # Create a ScrolledText object to open the file specified in the  entry box
             self._text_box = tkinter.Text(self) # Make it a child of the main window object
-            self._text_box.pack(side=tkinter.LEFT)
+            self._text_box.pack(side=tkinter.LEFT, fill=tkinter.BOTH, expand=tkinter.TRUE)
 
             self._text_box_scrollbar = tkinter.ttk.Scrollbar(self, command=self._text_box.yview)
-            self._text_box_scrollbar.pack(side=tkinter.LEFT, fill=tkinter.Y)
+            self._text_box_scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
             self._text_box.config(yscrollcommand=self._text_box_scrollbar.set)
 
         def set_text(self, text):
