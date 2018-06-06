@@ -2,9 +2,6 @@
 import enum
 # Import the pathlib library for cross platform file path abstraction
 import pathlib
-# Import the re library to support regular expressions
-import re
-
 
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
@@ -13,53 +10,78 @@ class AcceptedLogTypes(enum.Enum):
     DEFAULT = APACHE
 
 
+# Enumeration for the accepted file formats
 class AcceptedFileFormats(enum.Enum):
     LOG = ('log files', '*.log')
     DEFAULT = LOG
 
 
-class FileParseModes(enum.Enum):
-    GRAPH = 'Generate graph'
-    CSV = 'Convert to csv'
-    DEFAULT = GRAPH
-
-
-class GraphModes(enum.Enum):
-    CON_PER_HOUR = 'Connections per hour'
-    # CON_PER_MIN = 'Connections per minute'
-    SIMUL_CON = 'Simultaneous connections'
-    DEFAULT = CON_PER_HOUR
-
-
+# Enumeration for the output file formats
 class OutputFileFormats(enum.Enum):
     CSV = ('CSV (Comma delimited)', '*.csv')
     DEFAULT = CSV
 
 
+# Enumeration for the file parse modes
+class FileParseModes(enum.Enum):
+    GRAPH = 'Generate graph'
+    REPORT = 'Generate report'
+    CSV = 'Convert to csv'
+    DEFAULT = GRAPH
+
+
+# Enumeration for the graph output modes
+class GraphModes(enum.Enum):
+    CON_PER_HOUR = 'Connections per hour'
+    IP_CONNECTIONS = 'Connections by Country'
+    # CON_PER_MIN = 'Connections per minute'
+    SIMUL_CON = 'Simultaneous connections'
+    DEFAULT = CON_PER_HOUR
+
+
+# Enumeration for the report output modes
+class ReportModes(enum.Enum):
+    URL_RPT = 'Website pages'
+    SUSP_ACT = 'Suspicious activity report'
+    DEFAULT = SUSP_ACT
+
+
+class AnaPyzerModelError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 # Class definition for the file reader of the application
 class AnaPyzerModel:
-
     # Constructor
-    def __init__(self):
+    def __init__(self, parser, analyzer):
         self.DEFAULT_FILE_PATH = pathlib.Path.home()
         self._in_file_path = pathlib.Path('')
         self._out_file_path = pathlib.Path('')
         self._log_type = AcceptedLogTypes.DEFAULT
         self._file_parse_mode = FileParseModes.DEFAULT
         self._graph_mode = GraphModes.DEFAULT
-
-        self._error_listener = None
-        self._success_listener = None
+        self._report_mode = ReportModes.DEFAULT
+        self._parsed_log_data = None
+        self._graph_data = None
+        self._report_data = None
+        self._in_file_path_has_changed = False
+        self._analyzer = analyzer
+        self._parser = parser
 
     # Setter for the file path to the input file
     # Takes a string for the file path
     def set_in_file_path(self, in_file_path):
         # If the input file path was set, set the model's file path equal to it
         if in_file_path:
-            self._in_file_path = pathlib.Path(in_file_path)
+            new_in_file_path = pathlib.Path(in_file_path)
+            if self._in_file_path != new_in_file_path:
+                self._in_file_path = new_in_file_path
+                self._in_file_path_has_changed = True
         # Otherwise set the model's file path equal to the default file path
         else:
             self._in_file_path = pathlib.Path(self.DEFAULT_FILE_PATH)
+            self._in_file_path_has_changed = True
 
     # Getter for the model's file path to the input file
     # Returns a string representing the file path
@@ -76,7 +98,7 @@ class AnaPyzerModel:
     # Setter for the file path to the input file
     # Takes a string for the file path
     def set_out_file_path(self, out_file_path):
-        # If the input file path was set, set the model's file path equal to it
+        # If the output file path was set, set the model's output file path equal to it
         if out_file_path:
             # If we are in convert to CSV mode
             if self._file_parse_mode == FileParseModes.CSV:
@@ -115,6 +137,7 @@ class AnaPyzerModel:
     # Setter for the type of input log file that will be read
     def set_log_type(self, log_type):
         self._log_type = AcceptedLogTypes(log_type)
+        self._in_file_path_has_changed = True
 
     # Getter for the model's file type for the expected input log type
     # Returns a string representing the expected input log type
@@ -137,315 +160,175 @@ class AnaPyzerModel:
     def get_graph_mode(self):
         return self._graph_mode
 
+    # Setter for the type of report to generate
+    def set_report_mode(self, report_mode):
+        self._report_mode = ReportModes(report_mode)
+
+    # Getter for the type of report to generate
+    def get_report_mode(self):
+        return self._report_mode
+
     # Reads from the input file, converts to csv, and writes to the output file
-    def read_file_to_csv(self):
+    def convert_file_to_csv(self):
         try:
             in_file = open(self._in_file_path, 'r')
         except IOError as e:
-            self._on_error("Could not read from file:\n" + e.filename + "\n" + e.strerror)
-            return False
+            raise AnaPyzerModelError("Could not read from file:\n" + e.filename + "\n" + e.strerror)
 
         try:
             out_file = open(self._out_file_path, 'w')
         except IOError as e:
             in_file.close()
-            self._on_error("Could not write to file:\n" + e.filename + "\n" + e.strerror)
-            return False
+            raise AnaPyzerModelError("Could not write to file:\n" + e.filename + "\n" + e.strerror)
 
-        for line in in_file:
-            converted_line = re.sub("\s+", ",", line.strip())
-            out_file.write(converted_line + '\n')
+        try:
+            self._parser.convert_file_to_csv(in_file, out_file)
+        except IOError as e:
+            raise AnaPyzerModelError("Error encountered with file:\n" + e.filename + "\n" + e.strerror)
+        finally:
+            in_file.close()
+            out_file.close()
 
-        in_file.close()
-        out_file.close()
-
-        self._on_success("Successfully converted log file to csv")
         return True
 
-    # Internal methods to call external listener methods
-    # Method to call when a file IO error occurs
-    def _on_error(self, error):
-        if self._error_listener:
-            self._error_listener(error)
+    def create_report_data(self):
+        self._parse_log_file_data()
+        if self._report_mode == ReportModes.URL_RPT:
+            pass
+        elif self._report_mode == ReportModes.SUSP_ACT:
+            self._report_data = self._analyzer.malicious_activity_report(self._parsed_log_data)
 
-    # Method to call when a file was successfully read
-    def _on_success(self, status_message):
-        if self._success_listener:
-            self._success_listener(status_message)
+    def get_report_data(self):
+        return self._report_data
 
-    # Methods to add listener methods for the internal listener methods to call outside of this class
-    def add_error_listener(self, listener):
-        self._error_listener = listener
+    def export_report_data_to_file(self):
+        try:
+            out_file = open(self.get_out_file_path(), 'w')
+        except IOError as e:
+            raise AnaPyzerModelError("Could not write to " + e.filename + "\n" + e.strerror)
+            out_file.close()
+        self._parser.save_report_to_file(self._report_data, out_file)
 
-    def add_success_listener(self, listener):
-        self._error_listener = listener
+    # get_parsed_log_file opens the current in_file and attempts to parse it, determining the log type
+    # based on the current state of the UI
+    def _parse_log_file_data(self):
+        if self._in_file_path_has_changed or self._parsed_log_data is None:
+            self._in_file_path_has_changed = False
+            try:
+                log_file = open(self.get_in_file_path(), 'r')
+                if self._log_type == AcceptedLogTypes.IIS:
+                    # print("parsing IIS")
+                    try:
+                        parsed_log = self._parser.parse_w3c_to_list(log_file)
+                    except IndexError as e:
+                        raise AnaPyzerModelError("Log file does not appear to be in IIS / W3C log format")
+                elif self._log_type == AcceptedLogTypes.APACHE:
+                    # print("parsing Apache")
+                    try:
+                        parsed_log = self._parser.parse_common_apache_to_list(log_file)
+                    except IndexError as e:
+                        raise AnaPyzerModelError("Log file does not appear to be in Apache / Common log format")
+            except IOError as e:
+                raise AnaPyzerModelError("Could not read from " + e.filename + "\n" + e.strerror)
 
-    """  
-    parse_common_apache_to_list() parses an apache log that has been exported in the common, default format by an apache web server.
-    This method is in need of additional work that will make it functional with logs that have custom configurations
-    Reference for Common Log Format:
-    https://httpd.apache.org/docs/1.3/logs.html#common
-    """
-    def parse_common_apache_to_list(self, in_file):
-        if not in_file:
-            return None
-        log_data = {}
+            log_file.close()
 
-        universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
-                           'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
-                           'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
-                           'bytes-received', 'time-taken']
-
-        # initialize placeholder variables in log_data array representing each of the w3c format parameters
-
-        i = 0
-        # as long as there ar
-        # Split string into list of individual words with space as delimitere lines in the file, loop:
-        for line in in_file:
-            # Use split to cut date/timestamp combined line out of data line
-            date_ts = line.split('[', 1)
-            # Use split to separate date and timestamp
-            date_ts = date_ts[1].split(":", 1)
-            # Isolate timestamp from remaining information in line
-            date_ts[1] = date_ts[1].split(' ', 1)[0]
-
-            # Create new split line for extracting other data
-            split_line = line.split(' ')
-
-            client_ip = split_line[0]
-            request_info = line.split('"', 2)[1]
-
-            method = request_info.split('/', 1)[0]
-            # if the request was a GET method, then uri-stem server-client status and bytes received data should exist
-            if "GET" in method:
-                uri_stem = request_info.split(' ')[1]
-                sc_status = split_line[8]
-                bytes_received = split_line[9]
-
+            if parsed_log is not None:
+                self._parsed_log_data = parsed_log
+                return True
             else:
-                uri_stem = '-'
-                sc_status = '-'
-                bytes_received = '-'
+                raise AnaPyzerModelError("Log was unable to be parsed.")
 
-            client_ip = split_line[0]
+    # create_graph_data attempts to extract graphable data from the current report_data dictionary
+    def create_graph_data(self):
+        self._parse_log_file_data()
 
-            data = [date_ts[0], date_ts[1], client_ip, method, uri_stem, sc_status, bytes_received]
+        print(self.get_graph_mode())
+        if self.get_graph_mode() == GraphModes.CON_PER_HOUR:
+            print("Creating Connections Per Hour Report")
+            graph_data = self._analyzer.get_connections_per_hour(self._parsed_log_data)
 
-            log_data[i] = data
+        elif self.get_graph_mode() == GraphModes.IP_CONNECTIONS:
+            print("Creating IP Connections Report")
+            graph_data = self._analyzer.ip_connection_report(self._parsed_log_data)
 
-            i += 1
+        if graph_data is not None:
+            self._graph_data = graph_data
 
-        # length represents the number of lines of DATA present in returned parsed list
-        log_data['length'] = i
-        log_data['date'] = 0
-        log_data['timestamp'] = 1
-        log_data['client-ip'] = 2
-        log_data['method'] = 3
-        log_data['uri-stem'] = 4
-        log_data['sc-status'] = 5
-        log_data['bytes-received'] = 6
+    # Print method for testing, outputs current delimited graph data to console
+    def print_current_graph_data_split(self):
+        for date in self._graph_data:
+            print(self._graph_data[date])
 
-        # return the list containing data
-        return log_data
+    # Print method for testing, outputs current graph data to console
+    def print_current_graph_data(self):
+        print(self._graph_data)
 
-    """
-    parse_w3c_to_list will parse all information from an IIS/W3C format log into a list
-    With the locations of each field denoted in the parsed_log['parameter'] field
-    For instance, if c-ip is parsed into the 2 index of each line, requesting parsed_log['c-ip'] will return 2
-    This also works in reverse, so if you need the c-ip from each line, you request parsed_log[parsed_log['c-ip']]
-    For information on what each tag means refer to:
-    https://stackify.com/how-to-interpret-iis-logs/
-    """
-    @classmethod
-    def parse_w3c_to_list(cls, in_file):
-        if not in_file:
-            return None
-        log_data = {}
-        potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
-                                'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
-                                'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
-                                'cs-bytes', 'time-taken']
-        universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
-                           'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',
-                           'referrer', 'host', 'http-status', 'protocol-substatus', 'win32-status', 'bytes-sent',
-                           'bytes-received', 'time-taken']
+    # Print method for testing, outputs current report data to console
+    def print_current_report_data(self):
+        print("printing _report_data")
+        print(self._parsed_log_data)
+        if self._parsed_log_data['length'] > 0:
+            i = 0
+            while i < self._parsed_log_data['length']:
+                print(self._parsed_log_data[i])
+                i+=1
 
-        log_data['fields'] = -1
-        # initialize placeholder variables in log_data array representing each of the w3c format parameters
-        for parameter in potential_parameters:
-            log_data[parameter] = -1
+    # Returns an array of the graph data dictionary's keys which contain
+    # values that are also dictionaries or arrays.
+    def get_graph_data_split(self):
+        split = []
+        for key in self._graph_data.keys():
+            if isinstance(self._graph_data[key], dict):
+                split.append(key)
 
-        i = 0
-        # as long as there are lines in the file, loop:
-        for line in in_file:
-            # Split string into list of individual words with space as delimiter
-            split_line = line.split(' ')
+        return split
 
-            # Every header line at the top of the log will start with a #, making it
-            # easy to differentiate between data and the header
-            if '#' in split_line[0]:
-                log_data[str(split_line[0])] = split_line
-
-                if '#Date' in split_line[0] and log_data['date'] == -1:
-                    log_data['date'] = split_line[1]
-                    # print("Date of record: " + log_data['date'])
-
-                if '#Fields' in split_line[0]:
-                    # Check the fields line for all available data being logged
-                    log_data['fields'] = 1
-                    j = 0
-                    for element in split_line:
-                        for parameter in potential_parameters:
-
-                            if element == parameter:
-                                log_data[parameter] = j - 1
-                        j += 1
-            else:
-                if log_data['fields'] == -1:
-                    return None
-                # print(split_line[log_data['c-ip']])
-                log_data[i] = split_line
-                i += 1
-        # close the file once you're done getting all of the line information
-        # once log file is parsed, assign the new positions of each requested parameter in the log_data list
-        # this will prevent issues when using methods that rely on tagged element values representing element placement in array
-        k = 0
-        for parameter in potential_parameters:
-            # add an index in the log_data array representing the universal name for each field
-            log_data[universal_names[k]] = log_data[parameter]
-
-            k += 1
-        # length represents the number of lines of DATA present in returned parsed list
-        log_data['length'] = i
-        # return the list containing CSV data
-        return log_data
-
-    """
-    requested parameters list can consist of the following, using the official IIS naming convention found in header
-    For information on what each tag means refer to:
-    https://stackify.com/how-to-interpret-iis-logs/
-    """
-    @classmethod
-    def parse_w3c_requested_to_list(cls, in_file, requested_parameters):
-        if not in_file:
+    # Getter method for graph data keys,
+    # used for data structures which contain a layer of abstraction
+    # such as each data set being separated by date
+    def get_graph_data_split_keys(self,date):
+        if self._graph_data.get(date):
+            return self._graph_data[date].keys()
+        else:
             return None
 
-        log_data = {}
-        # in_file = open('LWTech_auth.log')
-        potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
-                                'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
-                                'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
-                                'cs-bytes', 'time-taken']
-
-        log_data['header'] = False
-        # initialize placeholder variables in log_data array representing each of the w3c format parameters
-        for parameter in potential_parameters:
-            log_data[parameter] = -1
-
-        i = 0
-        # as long as there are lines in the file, loop:
-        for line in in_file:
-            # Split string into list of individual words with space as delimiter
-            split_line = line.split(' ')
-
-            # Every header line at the top of the log will start with a #, making it
-            # easy to differentiate between data and the header
-            if '#' in split_line[0]:
-                log_data[str(split_line[0])] = split_line
-                log_data['header'] = True
-                if '#Date' in split_line[0] and log_data['date'] == -1:
-                    log_data['date'] = split_line[1]
-                    # print("Date of record: " + log_data['date'])
-
-                if '#Fields' in split_line[0]:
-                    # Check the fields line for all available data being logged
-                    # j keeps count of the placement of each parameter in the split line
-                    j = 0
-                    for element in split_line:
-                        # iterate through list of potential parameters
-                        for parameter in potential_parameters:
-                            # mark the location of each parameter present in relation to the list to be created
-                            if element == parameter:
-                                log_data[parameter] = j
-                                j += 1
-            else:
-                if not log_data['header']:
-                    return None
-
-                # initialize log_data[i] as a blank list to allow for use of append method
-                log_data[i] = []
-
-                # iterate through array of requested_parameters and add the information requested to the parsed list
-                for parameter in requested_parameters:
-                    if log_data.get(parameter):
-                        log_data[i].append(split_line[log_data[parameter]])
-                    else:
-                        # print("Requested parameter "+ parameter + " not found")
-                        pass
-
-                i += 1
-
-        # once log file is parsed, assign the new positions of each requested parameter in the log_data list to
-        # prevent issues when using methods that rely on tagged element values representing element placement in array
-        k = 0
-        for parameter in requested_parameters:
-            log_data[parameter] = k
-            k += 1
-        # length represents the number of lines of DATA present in returned parsed list
-        log_data['length'] = i
-        # return the list containing w3c data
-        return log_data
-
-    # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
-    # and returns a list containing how many unique ip connections were present during each hour of the day
-    # this parsed list can be used with the plot_hourly_connections method
-    @staticmethod
-    def get_connections_per_hour(parsed_log):
-        connections_per_hour_table = {}
-
-        if parsed_log is None:
+    # Getter method for graph data values,
+    # used for data structures which contain a layer of abstraction
+    # such as each data set being separated by date
+    def get_graph_data_split_values(self,date):
+        if self._graph_data.get(date):
+            return self._graph_data[date].values()
+        else:
             return None
 
-        time_place = parsed_log['timestamp']
-        cip_place = parsed_log['client-ip']
+    # Getter method for graph keys
+    # used for graphing of non-delimited data (not separated by date/time/etc)
+    def get_graph_data_keys(self):
+        return self._graph_data.keys()
 
+    # Getter method for graph values
+    # used for graphing of non-delimited data (not separated by date/time/etc)
+    def get_graph_data_values(self):
+        return self._graph_data.values()
 
-        i = 0
-        date = parsed_log[i][parsed_log['date']]
-        connections_per_hour_table[date] = {}
-        while i < parsed_log['length']:
-            # iterate through the ip addresses recorded
-            if parsed_log[i][parsed_log['date']] != date:
-                date = parsed_log[i][parsed_log['date']]
-                connections_per_hour_table[date] = {}
+    # Getter method for graph x label
+    def get_graph_data_x_label(self):
+        if 'xlabel' in self._graph_data.keys():
+            return self._graph_data['xlabel']
+        else:
+            return 'X Axis'
 
-            time_string = str(parsed_log[i][parsed_log['timestamp']])
-            user_ip_address = str(parsed_log[i][parsed_log['client-ip']])
+    # Getter method for graph y label
+    def get_graph_data_y_label(self):
+        if 'ylabel' in self._graph_data.keys():
+            return self._graph_data['ylabel']
+        else:
+            return 'Y Axis'
 
-            # time_string = str(time_string)
-            # user_ip_address = str(user_ip_address)
-            # print("Time string = " + time_string)
-            # print("IP address = "+ user_ip_address)
-            hours = time_string[:2]
-
-            if connections_per_hour_table[date].get(hours):
-                connections_per_hour_table[date][hours] += [user_ip_address]
-            else:
-                connections_per_hour_table[date][hours] = [user_ip_address]
-            i += 1
-
-        for date in connections_per_hour_table:
-            for time in connections_per_hour_table[date]:
-                ip_count = len(set(connections_per_hour_table[date][time]))
-                connections_per_hour_table[date][time] = ip_count
-
-        # print("connections per hour report complete")
-        # for time in connections_per_hour_table:
-        #     print(str(connections_per_hour_table[time]) + " unique connections at "+ time)
-        return connections_per_hour_table
-
-    # The plot_connections method take a log formatted by the get_connections_per_hour method
-    @staticmethod
-    def announce_connections(connections_log):
-        for log in connections_log:
-            print(str(connections_log[log]) + " unique connections found at " + log + ":00")
+    # Getter method for graph title
+    def get_graph_data_title(self):
+        if self._graph_data.get('title'):
+            return self._graph_data['title']
+        else:
+            return 'Title'
