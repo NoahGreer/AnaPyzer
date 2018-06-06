@@ -33,6 +33,7 @@ class AnaPyzerAnalyzer:
             counter = 0
             current_timestamp = 0
             current_url = 1
+            current_index = 0
 
             timestamps = ip_address_log_info_dict[ip]['timestamps']
             urls = ip_address_log_info_dict[ip]['urls']
@@ -78,7 +79,7 @@ class AnaPyzerAnalyzer:
                     for url in url_attempts:
                         report_output += url + "  was accessed more than three times within ten seconds by " + ip + "\n"
                     malicious = False
-                current_index += 1;
+                current_index += 1
         return report_output
 
 
