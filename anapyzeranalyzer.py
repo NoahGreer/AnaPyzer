@@ -28,9 +28,8 @@ class AnaPyzerAnalyzer:
         report_output = ""
 
         for ip in ip_address_log_info_dict:
-
             malicious = False
-            attempts = 0
+            attempts = 1
             counter = 0
             current_timestamp = 0
             current_url = 1
@@ -46,25 +45,27 @@ class AnaPyzerAnalyzer:
                 timestamps[timestamps.index(timestamp)] = temp
             timestamps.sort()
             urls.sort()
+            url_attempts = []
             for url in urls:
                 try:
                     if url == urls[current_url]:
-                        malicious = True
                         attempts += 1
                         current_url += 1
+                        if attempts > 3 and url not in url_attempts:
+                            url_attempts.append(url)
+                            malicious = True
                     else:
                         current_url += 1
+                        attempts = 1
 
                 except IndexError:
                     break
-            if attempts > 0:
-                attempts += 1
+                current_index = 0
             for timestamp in timestamps:
-                if (int(timestamp) - int(timestamps[
-                                             current_timestamp])) < 11:  # go forward looking for timestamps within 10 secs
+                if (int(timestamp) - int(timestamps[current_timestamp])) < 11:  # go forward looking for timestamps within 10 secs
                     counter += 1
                 else:
-                    current_timestamp = timestamps.index(timestamp)
+                    current_timestamp = current_index
                     counter = 0
                     for i in range(1, 10):
                         try:
@@ -72,10 +73,12 @@ class AnaPyzerAnalyzer:
                                 counter += 1
                         except IndexError:
                             break
-                if counter > 100:
-                    malicious = True
-            report_output += "Malicious activity detected from " + ip + "\n\n"
-
+                if counter >= 10 and malicious:
+                    report_output += "Malicious activity detected from " + ip + "\n"
+                    for url in url_attempts:
+                        report_output += url + "  was accessed more than three times within ten seconds by " + ip + "\n"
+                    malicious = False
+                current_index += 1;
         return report_output
 
 
