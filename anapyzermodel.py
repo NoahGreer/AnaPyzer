@@ -43,7 +43,7 @@ class GraphModes(enum.Enum):
 class ReportModes(enum.Enum):
     URL_RPT = 'Website pages'
     SUSP_ACT = 'Suspicious activity report'
-    DEFAULT = SUSP_ACT
+    DEFAULT = URL_RPT
 
 
 class AnaPyzerModelError(Exception):
@@ -137,6 +137,7 @@ class AnaPyzerModel:
     # Setter for the type of input log file that will be read
     def set_log_type(self, log_type):
         self._log_type = AcceptedLogTypes(log_type)
+        self._in_file_path_has_changed = True
 
     # Getter for the model's file type for the expected input log type
     # Returns a string representing the expected input log type
@@ -193,10 +194,9 @@ class AnaPyzerModel:
     def create_report_data(self):
         self._parse_log_file_data()
         if self._report_mode == ReportModes.URL_RPT:
-            pass
+            self._report_data = self._analyzer.get_web_pages(self._parsed_log_data)
         elif self._report_mode == ReportModes.SUSP_ACT:
             self._report_data = self._analyzer.malicious_activity_report(self._parsed_log_data)
-            print(self._report_data)
 
     def get_report_data(self):
         return self._report_data

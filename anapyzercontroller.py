@@ -134,11 +134,13 @@ class AnaPyzerController:
 
         elif parse_mode == FileParseModes.REPORT:
             try:
-                if self.model.create_report_data():
-                    self._on_success("Report generated successfully")
+                self.model.create_report_data()
             except AnaPyzerModelError as e:
                 self._on_error(e.message)
-            self.model.get_report_data()
+                return False
+
+            self.view.display_report_view(self.model.get_report_data())
+
 
         elif parse_mode == FileParseModes.CSV:
             try:
@@ -146,6 +148,7 @@ class AnaPyzerController:
                     self._on_success("Converted to csv successfully.")
             except AnaPyzerModelError as e:
                 self._on_error(e.message)
+                return False
 
     # Method to call when an error occurs
     def _on_error(self, message):
