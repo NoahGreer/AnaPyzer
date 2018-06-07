@@ -315,17 +315,27 @@ class AnaPyzerAnalyzer:
     @staticmethod
     def get_web_pages(parsed_log):
         web_page_dictionary = {}
+        web_page_bytes = {}
 
         for entry in range(0, parsed_log['length']):
             url = parsed_log[entry][parsed_log['uri-stem']]
+            # print("resource " + url)
+            bytes_sent = parsed_log[entry][parsed_log['bytes-sent']]
+            # print("sent " + bytes_sent)
             if url in web_page_dictionary:
                 web_page_dictionary[url] += 1
+                web_page_bytes[url] += int(bytes_sent)
             else:
                 web_page_dictionary[url] = 1
-        website_report = "Web Site Report\n\n"
+                web_page_bytes[url] = int(bytes_sent)
+                website_report = "Web Site Resource Report has " + str(len(web_page_dictionary)) + " entries \n\n "
+                website_report += "The top 50 resources are : \n\n"
 
-        for url, count in web_page_dictionary.items():
-            # for count in sorted(web_page_dictionary.items()):
-            # website_report += "Web page " + url + " was hit " + str(count) + " times \n"
-            website_report += url + " : " + str(count) + " \n"
+        # for url, count in web_page_dictionary.items():
+        i = 1
+        for url,count in sorted(web_page_dictionary.items(),key = lambda t:t[1], reverse=True):
+            website_report += "Web Site resource: " + url + " was hit " + str(count) + " times \n"
+            i += 1
+            if i > 50:
+                break
         return website_report
