@@ -315,12 +315,12 @@ class AnaPyzerAnalyzer:
                 web_page_dictionary[url] = 1
                 web_page_bytes[url] = int(bytes_sent)
                 website_report = "Web Site Resource Report has " + str(len(web_page_dictionary)) + " entries \n\n "
-                website_report += "The top 50 resources are : \n\n "
+                website_report += "The top 50 resources are : \n\n"
 
         # for url, count in web_page_dictionary.items():
         i = 1
         for url,count in sorted(web_page_dictionary.items(),key = lambda t:t[1], reverse=True):
-            website_report += "Web Site resource " + url + " : " + str(count) + " \n"
+            website_report += "Web Site resource: " + url + " was hit " + str(count) + " times \n"
             i += 1
             if i > 50:
                 break
