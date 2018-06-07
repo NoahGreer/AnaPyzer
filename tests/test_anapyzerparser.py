@@ -188,3 +188,46 @@ class TestAnaPyzerParserMethods(unittest.TestCase):
 
         output = self.parser.parse_w3c_to_list(self.log_file_mock())
         self.assertEqual(expected_output, output)
+
+    def test_parse_common_apache_to_list_sample1(self):
+        input = ["73.83.18.52 - - [04/Apr/2018:19:30:50 +0000] \"GET / HTTP/1.1\" 200 1108 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36\""]
+
+        expected_output = {0: ['04/Apr/2018', '19:30:50', '73.83.18.52', 'GET ', '/', '200', '1108'],
+                             'bytes-received': 6,
+                             'client-ip': 2,
+                             'date': 0,
+                             'length': 1,
+                             'method': 3,
+                             'sc-status': 5,
+                             'timestamp': 1,
+                             'uri-stem': 4}
+
+        self.log_file_mock.return_value = input
+
+        output = self.parser.parse_common_apache_to_list(self.log_file_mock())
+        self.assertEqual(expected_output, output)
+
+    def test_parse_common_apache_to_list_sample2(self):
+        input = ["73.83.18.52 - - [04/Apr/2018:19:30:50 +0000] \"GET / HTTP/1.1\" 200 1108 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36\"",
+                 "73.83.18.52 - - [04/Apr/2018:19:30:50 +0000] \"GET /css/style.css HTTP/1.1\" 200 1209 \"http://www.avsift.com/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36\""]
+        expected_output = {0: ['04/Apr/2018', '19:30:50', '73.83.18.52', 'GET ', '/', '200', '1108'],
+                             1: ['04/Apr/2018',
+                                 '19:30:50',
+                                 '73.83.18.52',
+                                 'GET ',
+                                 '/css/style.css',
+                                 '200',
+                                 '1209'],
+                             'bytes-received': 6,
+                             'client-ip': 2,
+                             'date': 0,
+                             'length': 2,
+                             'method': 3,
+                             'sc-status': 5,
+                             'timestamp': 1,
+                             'uri-stem': 4}
+
+        self.log_file_mock.return_value = input
+
+        output = self.parser.parse_common_apache_to_list(self.log_file_mock())
+        self.assertEqual(expected_output, output)

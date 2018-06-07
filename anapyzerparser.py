@@ -48,7 +48,6 @@ class AnaPyzerParser:
             # Create new split line for extracting other data
             split_line = line.split(' ')
 
-            # client_ip = split_line[0]   -  Dan unused variable
             request_info = line.split('"', 2)[1]
 
             method = request_info.split('/', 1)[0]
