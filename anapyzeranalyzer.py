@@ -3,6 +3,7 @@ import re
 import pathlib
 import csv
 
+
 # The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
 # from logs created by AnaPyzerParser object methods.
 class AnaPyzerAnalyzer:
@@ -63,7 +64,8 @@ class AnaPyzerAnalyzer:
                     break
                 current_index = 0
             for timestamp in timestamps:
-                if (int(timestamp) - int(timestamps[current_timestamp])) < 11:  # go forward looking for timestamps within 10 secs
+                if (int(timestamp) - int(
+                        timestamps[current_timestamp])) < 11:  # go forward looking for timestamps within 10 secs
                     counter += 1
                 else:
                     current_timestamp = current_index
@@ -81,7 +83,6 @@ class AnaPyzerAnalyzer:
                     malicious = False
                 current_index += 1
         return report_output
-
 
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
     # and returns a list containing how many unique ip connections were present during each hour of the day
@@ -177,7 +178,6 @@ class AnaPyzerAnalyzer:
             for info in ip_connection_time[ip]:
                 print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: "
                       + str(info[1]))
-
 
     def _lookup_ipv4(self, ip):
 
@@ -278,7 +278,7 @@ class AnaPyzerAnalyzer:
             else:
                 ip_connections[date][user_ip_address] = 1
 
-            #print(ip_connections[date])
+            # print(ip_connections[date])
             i += 1
         cc_report = {}
         for date in ip_connections:
@@ -296,3 +296,22 @@ class AnaPyzerAnalyzer:
         cc_report['title'] = "Connections by Country"
 
         return cc_report
+
+    # get_web_pages takes in a log parsed by parse_w3c_tolist method
+    @staticmethod
+    def get_web_pages(parsed_log):
+        web_page_dictionary = {}
+
+        for entry in range(0, parsed_log['length']):
+            url = parsed_log[entry][parsed_log['uri-stem']]
+            if url in web_page_dictionary:
+                web_page_dictionary[url] += 1
+            else:
+                web_page_dictionary[url] = 1
+        website_report = "Web Site Report\n\n"
+
+        for url, count in web_page_dictionary.items():
+            # for count in sorted(web_page_dictionary.items()):
+            # website_report += "Web page " + url + " was hit " + str(count) + " times \n"
+            website_report += url + " : " + str(count) + " \n"
+        return website_report
