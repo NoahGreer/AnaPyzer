@@ -94,9 +94,6 @@ class AnaPyzerAnalyzer:
         if parsed_log is None:
             return None
 
-        # time_place = parsed_log['timestamp']  Dan unused variable
-        # cip_place = parsed_log['client-ip']   Dan unused variable
-
         i = 0
         date = parsed_log[i][parsed_log['date']]
         connections_per_hour_table[date] = {}
@@ -108,11 +105,6 @@ class AnaPyzerAnalyzer:
 
             time_string = str(parsed_log[i][parsed_log['timestamp']])
             user_ip_address = str(parsed_log[i][parsed_log['client-ip']])
-
-            # time_string = str(time_string)
-            # user_ip_address = str(user_ip_address)
-            # print("Time string = " + time_string)
-            # print("IP address = "+ user_ip_address)
             hours = time_string[:2]
 
             if connections_per_hour_table[date].get(hours):
@@ -172,12 +164,13 @@ class AnaPyzerAnalyzer:
                 connection_time = 0
 
             i += 1
-
+        output = ""
         for ip in ip_connection_time:
             # time_sum = 0  Dan unused variable
             for info in ip_connection_time[ip]:
-                print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: "
-                      + str(info[1]))
+                output += "IP Address: " + ip + ": " + str(info[0]) + " request(s) " + " at: " + str(info[1]) + "\n\n"
+
+        return output
 
     def _lookup_ipv4(self, ip):
 
@@ -265,20 +258,10 @@ class AnaPyzerAnalyzer:
 
             user_ip_address = str(parsed_log[i][parsed_log['client-ip']])
 
-            # ip_country_code = self.lookup_ipv4(user_ip_address)
-
-            # if ip_country_code is not None:
-            #     if ip_connections[date].get(ip_country_code):
-            #         ip_connections[date][ip_country_code] += 1
-            #     else:
-            #         ip_connections[date][ip_country_code] = 1
-
             if ip_connections[date].get(user_ip_address):
                 ip_connections[date][user_ip_address] += 1
             else:
                 ip_connections[date][user_ip_address] = 1
-
-            # print(ip_connections[date])
             i += 1
         cc_report = {}
         for date in ip_connections:
