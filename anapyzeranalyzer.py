@@ -51,14 +51,14 @@ class AnaPyzerAnalyzer:
             timestamps.sort()
             urls.sort()
             url_attempts = []
-            # loops through urls and checks if the same url has been accessed more than 3 times by one ip
+            # loops through urls and checks if the same url has been accessed more than 5 times by one ip
             # If so sets boolean variable malicious to true
             for url in urls:
                 try:
                     if url == urls[current_url]:
                         attempts += 1
                         current_url += 1
-                        if attempts > 3 and url not in url_attempts:
+                        if attempts > 5 and url not in url_attempts:
                             url_attempts.append(url)
                             malicious = True
                     else:
@@ -70,32 +70,31 @@ class AnaPyzerAnalyzer:
                 current_index = 0
             # loops through timestamps and performs calculations to determine if a malicious attempt has been made
             for timestamp in timestamps:
-                # go forward looking for timestamps within 10 secs
-                if (int(timestamp) - int(timestamps[current_timestamp])) < 11:
+                # go forward looking for timestamps within 1 secs
+                if (int(timestamp) - int(timestamps[current_timestamp])) < 1:
                     counter += 1
                 else:
                     current_timestamp = current_index
                     counter = 0
-                    # go backward looking for timestamps within 10 secs
+                    # go backward looking for timestamps within 1 secs
                     for i in range(1, 10):
                         try:
-                            if (int(timestamps[current_timestamp]) - int(timestamps[current_timestamp - i])) < 11:
+                            if (int(timestamps[current_timestamp]) - int(timestamps[current_timestamp - i])) < 1:
                                 counter += 1
                         except IndexError:
                             break
-                # if website has been accessed ten or more times and malicious is set to true,
+                # if website has been accessed 5 or more times and malicious is set to true,
                 # adds ip and relevant urls accessed to report_output
-                if counter >= 10 and malicious:
-                    report_output += "Malicious activity detected from " + ip + "\n"
+                if counter >= 5 and malicious:
+                    report_output += "Malicious activity detected from " + ip + ":\n"
                     for url in url_attempts:
                         if url != "/":
-                            report_output += url + "  was accessed more than three times within ten seconds by " + ip + "\n"
+                            report_output += url + "  was accessed more than five times within one second by " + ip + "\n"
                     malicious = False
                 current_index += 1
                 report_output += "\n"
                 current_index += 1
         return report_output
-
 
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
     # and returns a list containing how many unique ip connections were present during each hour of the day
@@ -184,7 +183,6 @@ class AnaPyzerAnalyzer:
                 output += "IP Address: " + ip + ": " + str(info[0]) + " request(s) " + " at: " + str(info[1]) + "\n\n"
 
         return output
-
 
     def _lookup_ipv4(self, ip):
 
