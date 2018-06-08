@@ -308,3 +308,22 @@ class AnaPyzerAnalyzer:
         cc_report['title'] = "Connections by Country"
 
         return cc_report
+    
+    # get_web_pages takes in a log parsed by parse_w3c_tolist method
+    @staticmethod
+    def get_web_pages(parsed_log):
+        web_page_dictionary = {}
+
+        for entry in range(0, parsed_log['length']):
+            url = parsed_log[entry][parsed_log['uri-stem']]
+            if url in web_page_dictionary:
+                web_page_dictionary[url] += 1
+            else:
+                web_page_dictionary[url] = 1
+        website_report = "Web Site Report\n\n"
+
+        for url, count in web_page_dictionary.items():
+            # for count in sorted(web_page_dictionary.items()):
+            # website_report += "Web page " + url + " was hit " + str(count) + " times \n"
+            website_report += url + " : " + str(count) + " \n"
+        return website_report
