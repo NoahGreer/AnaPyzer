@@ -169,24 +169,19 @@ class AnaPyzerModel:
         return self._report_mode
 
     # Reads from the input file, converts to csv, and writes to the output file
-    def convert_file_to_csv(self):
-        try:
-            in_file = open(self._in_file_path, 'r')
-        except IOError as e:
-            raise AnaPyzerModelError("Could not read from file:\n" + e.filename + "\n" + e.strerror)
+    def export_log_to_csv(self):
+        self._parse_log_file_data()
 
         try:
             out_file = open(self._out_file_path, 'w')
         except IOError as e:
-            in_file.close()
             raise AnaPyzerModelError("Could not write to file:\n" + e.filename + "\n" + e.strerror)
 
         try:
-            self._parser.convert_file_to_csv(in_file, out_file)
+            self._analyzer.write_parsed_log_to_csv(self._parsed_log_data, out_file)
         except IOError as e:
             raise AnaPyzerModelError("Error encountered with file:\n" + e.filename + "\n" + e.strerror)
         finally:
-            in_file.close()
             out_file.close()
 
         return True
@@ -208,6 +203,7 @@ class AnaPyzerModel:
             raise AnaPyzerModelError("Could not write to " + e.filename + "\n" + e.strerror)
             out_file.close()
         self._parser.save_report_to_file(self._report_data, out_file)
+        out_file.close()
 
     # get_parsed_log_file opens the current in_file and attempts to parse it, determining the log type
     # based on the current state of the UI

@@ -144,7 +144,7 @@ class AnaPyzerController:
 
         elif parse_mode == FileParseModes.CSV:
             try:
-                if self.model.convert_file_to_csv():
+                if self.model.export_log_to_csv():
                     self._on_success("Converted to csv successfully.")
             except AnaPyzerModelError as e:
                 self._on_error(e.message)
