@@ -96,7 +96,6 @@ class AnaPyzerAnalyzer:
                 current_index += 1
         return report_output
 
-
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
     # and returns a list containing how many unique ip connections were present during each hour of the day
     # this parsed list can be used with the plot_hourly_connections method
@@ -191,7 +190,6 @@ class AnaPyzerAnalyzer:
             for info in ip_connection_time[ip]:
                 print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: "
                       + str(info[1]))
-
 
     def _lookup_ipv4(self, ip):
 
