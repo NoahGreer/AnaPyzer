@@ -43,6 +43,7 @@ class GraphModes(enum.Enum):
 class ReportModes(enum.Enum):
     URL_RPT = 'Website pages'
     SUSP_ACT = 'Suspicious activity report'
+    CONN_LENGTH = 'Connection Length report'
     DEFAULT = URL_RPT
 
 
@@ -197,6 +198,8 @@ class AnaPyzerModel:
             self._report_data = self._analyzer.get_web_pages(self._parsed_log_data)
         elif self._report_mode is ReportModes.SUSP_ACT:
             self._report_data = self._analyzer.malicious_activity_report(self._parsed_log_data)
+        elif self._report_mode == ReportModes.CONN_LENGTH:
+            self._report_data = self._analyzer.get_connection_length_report(self._parsed_log_data)
 
     def get_report_data(self):
         return self._report_data
@@ -272,7 +275,7 @@ class AnaPyzerModel:
             i = 0
             while i < self._parsed_log_data['length']:
                 print(self._parsed_log_data[i])
-                i+=1
+                i += 1
 
     # Returns an array of the graph data dictionary's keys which contain
     # values that are also dictionaries or arrays.
