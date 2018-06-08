@@ -138,10 +138,8 @@ class AnaPyzerParser:
             else:
                 if log_data['fields'] == -1:
                     raise IndexError()
-                # print(split_line)
                 log_data[i] = split_line
-                if i is 1:
-                    print(split_line)
+
                 i += 1
         # once log file is parsed, assign the new positions of each requested parameter in the log_data list
         # this will prevent issues when using methods that rely on tagged element values representing element
@@ -151,7 +149,6 @@ class AnaPyzerParser:
         for parameter in potential_parameters:
             # add an index in the log_data array representing the universal name for each field
             log_data[universal_names[k]] = log_data[parameter]
-            print(parameter + "indexed to " + str(log_data[parameter]))
             k += 1
         # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
@@ -192,7 +189,6 @@ class AnaPyzerParser:
                 log_data['header'] = True
                 if '#Date' in split_line[0] and log_data['date'] == -1:
                     log_data['date'] = split_line[1]
-                    # print("Date of record: " + log_data['date'])
 
                 if '#Fields' in split_line[0]:
                     # Check the fields line for all available data being logged
@@ -217,7 +213,6 @@ class AnaPyzerParser:
                     if log_data.get(parameter):
                         log_data[i].append(split_line[log_data[parameter]])
                     else:
-                        # print("Requested parameter "+ parameter + " not found")
                         pass
 
                 i += 1
