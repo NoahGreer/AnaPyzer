@@ -35,7 +35,7 @@ class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
     IP_CONNECTIONS = 'Connections by Country'
     # CON_PER_MIN = 'Connections per minute'
-    SIMUL_CON = 'Simultaneous connections'
+    #SIMUL_CON = 'Simultaneous connections'
     DEFAULT = CON_PER_HOUR
 
 
