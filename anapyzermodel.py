@@ -3,6 +3,7 @@ import enum
 # Import the pathlib library for cross platform file path abstraction
 import pathlib
 
+
 # Enumeration for the accepted log types
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
@@ -34,7 +35,6 @@ class FileParseModes(enum.Enum):
 class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
     IP_CONNECTIONS = 'Connections by Country'
-    # CON_PER_MIN = 'Connections per minute'
     SIMUL_CON = 'Simultaneous connections'
     DEFAULT = CON_PER_HOUR
 
@@ -76,7 +76,7 @@ class AnaPyzerModel:
         # If the input file path was set, set the model's file path equal to it
         if in_file_path:
             new_in_file_path = pathlib.Path(in_file_path)
-            if self._in_file_path != new_in_file_path:
+            if self._in_file_path is not new_in_file_path:
                 self._in_file_path = new_in_file_path
                 self._in_file_path_has_changed = True
         # Otherwise set the model's file path equal to the default file path
@@ -88,7 +88,7 @@ class AnaPyzerModel:
     # Returns a string representing the file path
     def get_in_file_path(self):
         in_file_path = str(self._in_file_path)
-        if in_file_path == '.':
+        if in_file_path is '.':
             in_file_path = ''
         return in_file_path
 
@@ -102,11 +102,11 @@ class AnaPyzerModel:
         # If the output file path was set, set the model's output file path equal to it
         if out_file_path:
             # If we are in convert to CSV mode
-            if self._file_parse_mode == FileParseModes.CSV:
+            if self._file_parse_mode is FileParseModes.CSV:
                 # Get the suffix of the output file
                 out_file_suffix = str(pathlib.PurePath(out_file_path).suffix)
                 # If it is not '.csv'
-                if out_file_suffix != '.csv':
+                if out_file_suffix is not '.csv':
                     # Change the suffix to '.csv'
                     out_file_path = str(pathlib.PurePath(out_file_path).with_suffix('.csv'))
             # Set the model's out file path to the out file path
@@ -119,7 +119,7 @@ class AnaPyzerModel:
     # Returns a string representing the file path
     def get_out_file_path(self):
         out_file_path = str(self._out_file_path)
-        if out_file_path == '.':
+        if out_file_path is '.':
             out_file_path = ''
         return out_file_path
 
@@ -130,7 +130,7 @@ class AnaPyzerModel:
         out_file_path = pathlib.PurePath(self._out_file_path)
         out_file_path_parent = pathlib.Path(str(out_file_path.parent))
 
-        if self.get_out_file_path() != '' and out_file_path_parent.is_dir():
+        if self.get_out_file_path() is not '' and out_file_path_parent.is_dir():
             is_valid = True
 
         return is_valid
@@ -194,9 +194,9 @@ class AnaPyzerModel:
 
     def create_report_data(self):
         self._parse_log_file_data()
-        if self._report_mode == ReportModes.URL_RPT:
+        if self._report_mode is ReportModes.URL_RPT:
             self._report_data = self._analyzer.get_web_pages(self._parsed_log_data)
-        elif self._report_mode == ReportModes.SUSP_ACT:
+        elif self._report_mode is ReportModes.SUSP_ACT:
             self._report_data = self._analyzer.malicious_activity_report(self._parsed_log_data)
         elif self._report_mode == ReportModes.CONN_LENGTH:
             self._report_data = self._analyzer.get_connection_length_report(self._parsed_log_data)
@@ -209,23 +209,24 @@ class AnaPyzerModel:
             out_file = open(self.get_out_file_path(), 'w')
         except IOError as e:
             raise AnaPyzerModelError("Could not write to " + e.filename + "\n" + e.strerror)
-            out_file.close()
         self._parser.save_report_to_file(self._report_data, out_file)
+        out_file.close()
 
     # get_parsed_log_file opens the current in_file and attempts to parse it, determining the log type
     # based on the current state of the UI
     def _parse_log_file_data(self):
         if self._in_file_path_has_changed or self._parsed_log_data is None:
+            parsed_log = None
             self._in_file_path_has_changed = False
             try:
                 log_file = open(self.get_in_file_path(), 'r')
-                if self._log_type == AcceptedLogTypes.IIS:
+                if self._log_type is AcceptedLogTypes.IIS:
                     # print("parsing IIS")
                     try:
                         parsed_log = self._parser.parse_w3c_to_list(log_file)
                     except IndexError as e:
                         raise AnaPyzerModelError("Log file does not appear to be in IIS / W3C log format")
-                elif self._log_type == AcceptedLogTypes.APACHE:
+                elif self._log_type is AcceptedLogTypes.APACHE:
                     # print("parsing Apache")
                     try:
                         parsed_log = self._parser.parse_common_apache_to_list(log_file)
@@ -245,12 +246,12 @@ class AnaPyzerModel:
     # create_graph_data attempts to extract graphable data from the current report_data dictionary
     def create_graph_data(self):
         self._parse_log_file_data()
-
-        if self.get_graph_mode() == GraphModes.CON_PER_HOUR:
+        graph_data = None
+        if self._graph_mode is GraphModes.CON_PER_HOUR:
             print("Creating Connections Per Hour Report")
             graph_data = self._analyzer.get_connections_per_hour(self._parsed_log_data)
 
-        elif self.get_graph_mode() == GraphModes.IP_CONNECTIONS:
+        elif self._graph_mode is GraphModes.IP_CONNECTIONS:
             print("Creating IP Connections Report")
             graph_data = self._analyzer.ip_connection_report(self._parsed_log_data)
 

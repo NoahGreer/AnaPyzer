@@ -3,9 +3,10 @@ import re
 import pathlib
 import csv
 
-
 # The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
 # from logs created by AnaPyzerParser object methods.
+
+
 class AnaPyzerAnalyzer:
     def __init__(self):
         self._known_ips = {}
@@ -37,10 +38,9 @@ class AnaPyzerAnalyzer:
             current_timestamp = 0
             current_url = 1
             current_index = 0
-
             timestamps = ip_address_log_info_dict[ip]['timestamps']
             urls = ip_address_log_info_dict[ip]['urls']
-            # loops through timestamps and converts each timestamp to a numerical value
+            # loops through timestamps and converts eacn timestamp to a numerical value
             for timestamp in timestamps:
                 temp = ""
                 for c in timestamp:
@@ -91,9 +91,8 @@ class AnaPyzerAnalyzer:
                         if url != "/":
                             report_output += url + "  was accessed more than five times within one second by " + ip + "\n"
                     malicious = False
-                current_index += 1
-                report_output += "\n"
-                current_index += 1
+                    report_output += "\n"
+                current_index += 1;
         return report_output
 
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
@@ -183,6 +182,7 @@ class AnaPyzerAnalyzer:
                 output += "IP Address: " + ip + ": " + str(info[0]) + " request(s) " + " at: " + str(info[1]) + "\n\n"
 
         return output
+
 
     def _lookup_ipv4(self, ip):
 
@@ -291,7 +291,7 @@ class AnaPyzerAnalyzer:
         cc_report['title'] = "Connections by Country"
 
         return cc_report
-
+    
     # get_web_pages takes in a log parsed by parse_w3c_tolist method
     @staticmethod
     def get_web_pages(parsed_log):
