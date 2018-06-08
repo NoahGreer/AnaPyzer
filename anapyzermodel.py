@@ -4,6 +4,8 @@ import enum
 import pathlib
 
 # Enumeration for the accepted log types
+
+
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
     IIS = 'IIS (u_ex*.log)'
@@ -206,6 +208,7 @@ class AnaPyzerModel:
             out_file = open(self.get_out_file_path(), 'w')
         except IOError as e:
             raise AnaPyzerModelError("Could not write to " + e.filename + "\n" + e.strerror)
+        finally:
             out_file.close()
         self._parser.save_report_to_file(self._report_data, out_file)
 
