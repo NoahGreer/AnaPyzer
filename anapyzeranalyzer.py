@@ -5,6 +5,8 @@ import csv
 
 # The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
 # from logs created by AnaPyzerParser object methods.
+
+
 class AnaPyzerAnalyzer:
     def __init__(self):
         self._known_ips = {}
