@@ -4,6 +4,8 @@ import enum
 import pathlib
 
 # Enumeration for the accepted log types
+
+
 class AcceptedLogTypes(enum.Enum):
     APACHE = 'Apache (access.log)'
     IIS = 'IIS (u_ex*.log)'
@@ -209,13 +211,14 @@ class AnaPyzerModel:
             out_file = open(self.get_out_file_path(), 'w')
         except IOError as e:
             raise AnaPyzerModelError("Could not write to " + e.filename + "\n" + e.strerror)
-            out_file.close()
         self._parser.save_report_to_file(self._report_data, out_file)
+        out_file.close()
 
     # get_parsed_log_file opens the current in_file and attempts to parse it, determining the log type
     # based on the current state of the UI
     def _parse_log_file_data(self):
         if self._in_file_path_has_changed or self._parsed_log_data is None:
+            parsed_log = None
             self._in_file_path_has_changed = False
             try:
                 log_file = open(self.get_in_file_path(), 'r')
@@ -245,7 +248,8 @@ class AnaPyzerModel:
     # create_graph_data attempts to extract graphable data from the current report_data dictionary
     def create_graph_data(self):
         self._parse_log_file_data()
-
+        graph_data = None
+        
         if self.get_graph_mode() == GraphModes.CON_PER_HOUR:
             print("Creating Connections Per Hour Report")
             graph_data = self._analyzer.get_connections_per_hour(self._parsed_log_data)
