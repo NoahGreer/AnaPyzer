@@ -3,7 +3,6 @@ import re
 import pathlib
 import csv
 
-
 # The AnaPyzerAnalyzer class contains all methods that are used to process information into a displayable form
 # from logs created by AnaPyzerParser object methods.
 class AnaPyzerAnalyzer:
@@ -37,10 +36,9 @@ class AnaPyzerAnalyzer:
             current_timestamp = 0
             current_url = 1
             current_index = 0
-
             timestamps = ip_address_log_info_dict[ip]['timestamps']
             urls = ip_address_log_info_dict[ip]['urls']
-            # loops through timestamps and converts each timestamp to a numerical value
+            # loops through timestamps and converts eacn timestamp to a numerical value
             for timestamp in timestamps:
                 temp = ""
                 for c in timestamp:
@@ -89,11 +87,10 @@ class AnaPyzerAnalyzer:
                     report_output += "Malicious activity detected from " + ip + ":\n"
                     for url in url_attempts:
                         if url != "/":
-                            report_output += url + "  was accessed more than five times within one second by " + ip + "\n"
+                            report_output += url + "  was accessed more than five times within one seconds by " + ip + "\n"
                     malicious = False
-                current_index += 1
-                report_output += "\n"
-                current_index += 1
+                    report_output += "\n"
+                current_index += 1;
         return report_output
 
     # get_connections_per_hour takes in a log parsed by the above parse_w3c_tolist method
@@ -190,6 +187,7 @@ class AnaPyzerAnalyzer:
             for info in ip_connection_time[ip]:
                 print("New info:  Requests:" + str(info[0]) + " IP Address: " + ip + " Time disconnected: "
                       + str(info[1]))
+
 
     def _lookup_ipv4(self, ip):
 
@@ -290,7 +288,7 @@ class AnaPyzerAnalyzer:
             else:
                 ip_connections[date][user_ip_address] = 1
 
-            # print(ip_connections[date])
+            #print(ip_connections[date])
             i += 1
         cc_report = {}
         for date in ip_connections:
@@ -308,22 +306,3 @@ class AnaPyzerAnalyzer:
         cc_report['title'] = "Connections by Country"
 
         return cc_report
-
-    # get_web_pages takes in a log parsed by parse_w3c_tolist method
-    @staticmethod
-    def get_web_pages(parsed_log):
-        web_page_dictionary = {}
-
-        for entry in range(0, parsed_log['length']):
-            url = parsed_log[entry][parsed_log['uri-stem']]
-            if url in web_page_dictionary:
-                web_page_dictionary[url] += 1
-            else:
-                web_page_dictionary[url] = 1
-        website_report = "Web Site Report\n\n"
-
-        for url, count in web_page_dictionary.items():
-            # for count in sorted(web_page_dictionary.items()):
-            # website_report += "Web page " + url + " was hit " + str(count) + " times \n"
-            website_report += url + " : " + str(count) + " \n"
-        return website_report
