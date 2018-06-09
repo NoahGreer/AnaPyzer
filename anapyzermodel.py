@@ -35,8 +35,6 @@ class FileParseModes(enum.Enum):
 class GraphModes(enum.Enum):
     CON_PER_HOUR = 'Connections per hour'
     IP_CONNECTIONS = 'Connections by Country'
-    #CON_PER_MIN = 'Connections per minute'
-    #SIMUL_CON = 'Simultaneous connections'
     DEFAULT = CON_PER_HOUR
 
 
@@ -44,7 +42,7 @@ class GraphModes(enum.Enum):
 class ReportModes(enum.Enum):
     URL_RPT = 'Website pages'
     SUSP_ACT = 'Suspicious activity report'
-    CONN_LENGTH = 'Connection Length report'
+    CONN_LENGTH = 'Connection length report'
     DEFAULT = URL_RPT
 
 
