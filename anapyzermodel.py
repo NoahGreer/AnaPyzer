@@ -129,7 +129,7 @@ class AnaPyzerModel:
         out_file_path = pathlib.PurePath(self._out_file_path)
         out_file_path_parent = pathlib.Path(str(out_file_path.parent))
 
-        if self.get_out_file_path() is not '' and out_file_path_parent.is_dir():
+        if self._out_file_path is not '' and out_file_path_parent.is_dir():
             is_valid = True
 
         return is_valid
@@ -169,24 +169,19 @@ class AnaPyzerModel:
         return self._report_mode
 
     # Reads from the input file, converts to csv, and writes to the output file
-    def convert_file_to_csv(self):
-        try:
-            in_file = open(self._in_file_path, 'r')
-        except IOError as e:
-            raise AnaPyzerModelError("Could not read from file:\n" + e.filename + "\n" + e.strerror)
+    def export_log_to_csv(self):
+        self._parse_log_file_data()
 
         try:
             out_file = open(self._out_file_path, 'w')
         except IOError as e:
-            in_file.close()
             raise AnaPyzerModelError("Could not write to file:\n" + e.filename + "\n" + e.strerror)
 
         try:
-            self._parser.convert_file_to_csv(in_file, out_file)
+            self._analyzer.write_parsed_log_to_csv(self._parsed_log_data, out_file)
         except IOError as e:
             raise AnaPyzerModelError("Error encountered with file:\n" + e.filename + "\n" + e.strerror)
         finally:
-            in_file.close()
             out_file.close()
 
         return True
@@ -197,19 +192,11 @@ class AnaPyzerModel:
             self._report_data = self._analyzer.get_web_pages(self._parsed_log_data)
         elif self._report_mode is ReportModes.SUSP_ACT:
             self._report_data = self._analyzer.malicious_activity_report(self._parsed_log_data)
-        elif self._report_mode == ReportModes.CONN_LENGTH:
+        elif self._report_mode is ReportModes.CONN_LENGTH:
             self._report_data = self._analyzer.get_connection_length_report(self._parsed_log_data)
 
     def get_report_data(self):
         return self._report_data
-
-    def export_report_data_to_file(self):
-        try:
-            out_file = open(self.get_out_file_path(), 'w')
-        except IOError as e:
-            raise AnaPyzerModelError("Could not write to " + e.filename + "\n" + e.strerror)
-        self._parser.save_report_to_file(self._report_data, out_file)
-        out_file.close()
 
     # get_parsed_log_file opens the current in_file and attempts to parse it, determining the log type
     # based on the current state of the UI
