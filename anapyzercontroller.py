@@ -2,6 +2,8 @@
 from anapyzermodel import *
 
 # Class definition for the Controller part of the MVC design pattern
+
+
 class AnaPyzerController:
     # Constructor
     # Takes a view and a model object
@@ -140,7 +142,6 @@ class AnaPyzerController:
                 return False
 
             self.view.display_report_view(self.model.get_report_data())
-
 
         elif parse_mode == FileParseModes.CSV:
             try:
