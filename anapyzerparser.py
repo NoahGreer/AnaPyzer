@@ -226,16 +226,3 @@ class AnaPyzerParser:
         log_data['length'] = i
         # return the list containing w3c data
         return log_data
-
-    @classmethod
-    def convert_file_to_csv(cls, in_file, out_file):
-        for line in in_file:
-            converted_line = re.sub("\s+", ",", line.strip())
-            out_file.write(converted_line + '\n')
-        return True
-
-    @classmethod
-    def save_report_to_file(cls, in_data, out_file):
-        for line in in_data:
-            out_file.write(line + '\n')
-        return True

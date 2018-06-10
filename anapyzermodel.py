@@ -199,14 +199,6 @@ class AnaPyzerModel:
     def get_report_data(self):
         return self._report_data
 
-    def export_report_data_to_file(self):
-        try:
-            out_file = open(self.get_out_file_path(), 'w')
-        except IOError as e:
-            raise AnaPyzerModelError("Could not write to " + e.filename + "\n" + e.strerror)
-        self._parser.save_report_to_file(self._report_data, out_file)
-        out_file.close()
-
     # get_parsed_log_file opens the current in_file and attempts to parse it, determining the log type
     # based on the current state of the UI
     def _parse_log_file_data(self):
