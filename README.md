@@ -4,6 +4,10 @@
 
 This is Group 2's IT Project for CSD 299 Spring 2018
 
+## Screenshot
+
+![AnaPyZer Screenshot](https://github.com/NoahGreer/AnaPyzer/blob/master/AnaPyzer_screenshot.png)
+
 ## Authors
 
 * **Daniel Estes**
