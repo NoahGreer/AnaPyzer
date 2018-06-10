@@ -192,7 +192,7 @@ class AnaPyzerModel:
             self._report_data = self._analyzer.get_web_pages(self._parsed_log_data)
         elif self._report_mode is ReportModes.SUSP_ACT:
             self._report_data = self._analyzer.malicious_activity_report(self._parsed_log_data)
-        elif self._report_mode == ReportModes.CONN_LENGTH:
+        elif self._report_mode is ReportModes.CONN_LENGTH:
             self._report_data = self._analyzer.get_connection_length_report(self._parsed_log_data)
 
     def get_report_data(self):
