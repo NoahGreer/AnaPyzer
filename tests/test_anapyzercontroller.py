@@ -60,4 +60,4 @@ class TestAnaPyzerControllerMethods(unittest.TestCase):
         self.controller.open_file_button_clicked()
 
         self.modelMock.get_file_parse_mode.assert_called_once()
-        self.modelMock.convert_file_to_csv.assert_called_once()
+        self.modelMock.export_log_to_csv.assert_called_once()
