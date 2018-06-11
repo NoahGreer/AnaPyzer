@@ -81,6 +81,8 @@ class AnaPyzerParser:
         log_data['bytes-sent'] = 6
         log_data['referer'] = 7
 
+        if log_data['length'] is 0:
+            log_data = None
         # return the list containing data
         return log_data
 
@@ -151,6 +153,9 @@ class AnaPyzerParser:
             k += 1
         # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
+
+        if log_data['length'] is 0:
+            log_data = None
         # return the list containing CSV data
         return log_data
 
