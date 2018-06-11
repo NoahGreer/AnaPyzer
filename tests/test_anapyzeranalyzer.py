@@ -82,7 +82,10 @@ class TestAnaPyzerAnalyzerMethods(unittest.TestCase):
  'username': 7,
  'win32-status': 13}
 
-        expected_output = {'2016-05-16': {'00': 1}}
+        expected_output = {'2016-05-16': {'00': 1},
+                         'title': 'Connections Per Hour',
+                         'xlabel': 'Hour of Day',
+                         'ylabel': 'Unique IPs Recorded'}
 
         output = self.analyzer.get_connections_per_hour(input)
         self.assertEqual(expected_output, output)
@@ -177,7 +180,10 @@ class TestAnaPyzerAnalyzerMethods(unittest.TestCase):
  'username': 7,
  'win32-status': 13}
 
-        expected_output = {'2016-05-16': {'00': 2}}
+        expected_output = {'2016-05-16': {'00': 2},
+ 'title': 'Connections Per Hour',
+ 'xlabel': 'Hour of Day',
+ 'ylabel': 'Unique IPs Recorded'}
 
         output = self.analyzer.get_connections_per_hour(input)
         self.assertEqual(expected_output, output)
