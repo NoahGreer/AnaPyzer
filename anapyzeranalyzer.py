@@ -101,7 +101,7 @@ class AnaPyzerAnalyzer:
     @staticmethod
     def get_connections_per_hour(parsed_log):
         connections_per_hour_table = {}
-
+        print(parsed_log)
         if parsed_log is None:
             return None
 
