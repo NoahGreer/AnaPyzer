@@ -301,14 +301,16 @@ class AnaPyzerAnalyzer:
         for entry in range(0, parsed_log['length']):
             url = parsed_log[entry][parsed_log['uri-stem']]
             # print("resource " + url)
-            bytes_sent = parsed_log[entry][parsed_log['bytes-sent']]
+            bytes_received = parsed_log[entry][parsed_log['bytes-received']]
             # print("sent " + bytes_sent)
+            #referrer = parsed_log[entry][parsed_log['referrer']]
+            #print("referrer : " + referrer)
             if url in web_page_dictionary:
                 web_page_dictionary[url] += 1
-                web_page_bytes[url] += int(bytes_sent)
+                web_page_bytes[url] += int(bytes_received)
             else:
                 web_page_dictionary[url] = 1
-                web_page_bytes[url] = int(bytes_sent)
+                web_page_bytes[url] = int(bytes_received)
                 website_report = "Web Site Resource Report has " + str(len(web_page_dictionary)) + " entries \n\n "
                 website_report += "The top 50 resources are : \n\n"
 
@@ -317,8 +319,8 @@ class AnaPyzerAnalyzer:
         for url,count in sorted(web_page_dictionary.items(),key = lambda t:t[1], reverse=True):
             website_report += "Web Site resource: " + url + " was hit " + str(count) + " times \n"
             i += 1
-            if i > 50:
-                break
+            #if i > 50:
+            #    break
         return website_report
 
     @classmethod

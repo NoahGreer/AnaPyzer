@@ -60,7 +60,7 @@ class AnaPyzerParser:
             else:
                 uri_stem = '-'
                 sc_status = '-'
-                bytes_received = 0
+                bytes_received = '0'
 
             client_ip = split_line[0]
 
