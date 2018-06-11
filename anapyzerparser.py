@@ -48,7 +48,6 @@ class AnaPyzerParser:
             # Create new split line for extracting other data
             split_line = line.split(' ')
 
-            # client_ip = split_line[0]   -  Dan unused variable
             request_info = line.split('"', 2)[1]
             referer = "-"
             method = request_info.split('/', 1)[0]
@@ -82,6 +81,8 @@ class AnaPyzerParser:
         log_data['bytes-sent'] = 6
         log_data['referer'] = 7
 
+        if log_data['length'] is 0:
+            log_data = None
         # return the list containing data
         return log_data
 
@@ -152,6 +153,9 @@ class AnaPyzerParser:
             k += 1
         # length represents the number of lines of DATA present in returned parsed list
         log_data['length'] = i
+
+        if log_data['length'] is 0:
+            log_data = None
         # return the list containing CSV data
         return log_data
 
@@ -226,16 +230,3 @@ class AnaPyzerParser:
         log_data['length'] = i
         # return the list containing w3c data
         return log_data
-
-    @classmethod
-    def convert_file_to_csv(cls, in_file, out_file):
-        for line in in_file:
-            converted_line = re.sub("\s+", ",", line.strip())
-            out_file.write(converted_line + '\n')
-        return True
-
-    @classmethod
-    def save_report_to_file(cls, in_data, out_file):
-        for line in in_data:
-            out_file.write(line + '\n')
-        return True

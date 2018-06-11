@@ -101,7 +101,7 @@ class AnaPyzerAnalyzer:
     @staticmethod
     def get_connections_per_hour(parsed_log):
         connections_per_hour_table = {}
-
+        print(parsed_log)
         if parsed_log is None:
             return None
 
@@ -320,3 +320,23 @@ class AnaPyzerAnalyzer:
             if i > 50:
                 break
         return website_report
+
+    @classmethod
+    def write_parsed_log_to_csv(cls, parsed_log, out_file):
+        for line in range(0, parsed_log['length']):
+            line_data = parsed_log[line]
+            out_line = ""
+            for i in range(0, len(line_data)):
+                if i < len(line_data) - 1:
+                    if ',' in line_data[i]:
+                        out_line += '"' + line_data[i] + '"' + ","
+                    else:
+                        out_line += line_data[i] + ","
+            out_file.write(out_line + '\n')
+        return True
+
+    @classmethod
+    def save_report_to_file(cls, in_data, out_file):
+        for line in in_data:
+            out_file.write(line + '\n')
+        return True
