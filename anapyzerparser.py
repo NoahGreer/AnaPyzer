@@ -61,7 +61,7 @@ class AnaPyzerParser:
             else:
                 uri_stem = '-'
                 sc_status = '-'
-                bytes_received = '-'
+                bytes_received = '0'
 
             client_ip = split_line[0]
 
@@ -98,7 +98,7 @@ class AnaPyzerParser:
         log_data = {}
         potential_parameters = ['date', 'time', 's-sitename', 's-computername', 's-ip', 'cs-method', 'cs-uri-stem',
                                 'cs-uri-query', 's-port', 'cs-username', 'c-ip', 'cs(UserAgent)', 'cs(Cookie)',
-                                'cs(Referrer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
+                                'cs(Referer)', 'cs-host', 'sc-status', 'sc-substatus', 'sc-win32-status', 'sc-bytes',
                                 'cs-bytes', 'time-taken']
         universal_names = ['date', 'timestamp', 'service-name', 'server-name', 'server-ip', 'method', 'uri-stem',
                            'uri-query', 'server-port', 'username', 'client-ip', 'user-agent', 'cookie',

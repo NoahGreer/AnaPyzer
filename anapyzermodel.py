@@ -41,7 +41,7 @@ class GraphModes(enum.Enum):
 
 # Enumeration for the report output modes
 class ReportModes(enum.Enum):
-    URL_RPT = 'Website pages'
+    URL_RPT = 'Website resources'
     SUSP_ACT = 'Suspicious activity report'
     DEFAULT = URL_RPT
 
