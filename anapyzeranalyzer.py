@@ -324,6 +324,6 @@ class AnaPyzerAnalyzer:
         for url,count in sorted(web_page_dictionary.items(),key = lambda t:t[1], reverse=True):
             website_report += "Web Site resource: " + url + " was hit " + str(count) + " times \n"
             i += 1
-            #if i > 50:
-            #    break
+            if i > 50:
+                break
         return website_report
