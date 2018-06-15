@@ -88,8 +88,7 @@ class AnaPyzerAnalyzer:
                 if counter >= 5 and malicious:
                     report_output += "Malicious activity detected from " + ip + ":\n"
                     for url in url_attempts:
-                        if url != "/":
-                            report_output += url + "  was accessed more than five times within one second by " + ip + "\n"
+                        report_output += "    " + url + "  was accessed more than five times within one second by " + ip + "\n"
                     malicious = False
                     report_output += "\n"
                 current_index += 1;
